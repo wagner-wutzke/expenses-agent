@@ -1,0 +1,56 @@
+server:
+  port: 8181
+
+spring:
+  application:
+    name: expenses-agent
+
+  config:
+    import: optional:file:.env
+
+  # spring ai openai
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        model: gpt-6-luna
+        reasoning-effort: "none"
+    model:
+      audio.speech: none
+      audio.transcription: none
+      image: none
+      moderation: none
+
+  # spring datasource with H2
+  jpa:
+    open-in-view: false
+    show-sql: false
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: update
+
+  datasource:
+    url: jdbc:h2:file:./data/expenses-agent
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: ${H2_CONSOLE_ENABLED:true}
+      settings:
+        web-allow-others: ${H2_CONSOLE_WEB_ALLOW_OTHERS:true}
+
+agent:
+  system-prompt-file: ${AGENT_SYSTEM_PROMPT_FILE:classpath:prompts/system-prompt.txt}
+
+
+logging:
+  level:
+    org:
+      springframework:
+        ai:
+          chat:
+            client:
+              advisor:
+                SimpleLoggerAdvisor: DEBUG
