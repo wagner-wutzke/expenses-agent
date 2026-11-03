@@ -44,4 +44,10 @@ class ExpenseToolInputsTest {
     assertEquals(5000.0, salary.amount());
     assertEquals(true, salary.confirmed());
   }
+
+  @Test
+  void periodInputDefaultsToCurrentMonth() {
+    assertEquals(0, new ExpenseToolInputs.PeriodInput().monthsAgo());
+    assertEquals(2, new ExpenseToolInputs.PeriodInput(2).monthsAgo());
+  }
 }

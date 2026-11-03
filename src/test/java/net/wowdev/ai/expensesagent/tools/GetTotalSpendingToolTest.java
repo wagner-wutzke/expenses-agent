@@ -5,6 +5,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import net.wowdev.ai.expensesagent.repository.ConfigurationRepository;
 import net.wowdev.ai.expensesagent.repository.ExpenseRepository;
 import org.junit.jupiter.api.Test;
@@ -16,7 +19,8 @@ class GetTotalSpendingToolTest {
   @Test
   void reportsCurrentMonthDebitTotal() {
     when(expenses.getTotalSpending(any(LocalDate.class), any(LocalDate.class))).thenReturn(42.5);
-    assertEquals("Total spending this month: $42.50",
+    String month = YearMonth.now().format(DateTimeFormatter.ofPattern("MMMM uuuu", Locale.US));
+    assertEquals("Total spending for " + month + ": $42.50",
         tool.getTotalSpendingTool(new ExpenseToolInputs.EmptyInput()));
     verify(expenses).getTotalSpending(any(LocalDate.class), any(LocalDate.class));
   }
