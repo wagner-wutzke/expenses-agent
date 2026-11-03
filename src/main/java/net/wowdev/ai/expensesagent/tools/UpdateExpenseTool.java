@@ -19,7 +19,7 @@ public class UpdateExpenseTool extends AbstractExpenseTool {
       description =
           "Updates an existing expense or income transaction by its ID. First use an itemized "
               + "transaction lookup to identify the ID. Only change fields the user requested; "
-              + "leave all other fields empty to preserve their current values. Preserve a supplied "
+              + "omit all other fields to preserve their current values. Preserve a supplied "
               + "description completely and verbatim.")
   public String updateExpense(ExpenseToolInputs.UpdateExpenseInput input) {
     if (input.id() == null) {

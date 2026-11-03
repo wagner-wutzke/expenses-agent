@@ -42,4 +42,16 @@ class ChatTraceTest {
           trace.transactionDetails());
     }
   }
+
+  @Test
+  void hidesLookupRecordsWhenTheTurnUpdatesATransaction() {
+    Expense expense =
+        new Expense(181L, LocalDate.of(2026, 11, 26), "Groceries", "Market", 25.0, ExpenseType.DEBIT);
+    try (ChatTrace trace = ChatTrace.start()) {
+      ChatTrace.recordTransactions("getTransactions", "type=DEBIT", List.of(expense));
+      ChatTrace.record("updateExpense", "UpdateExpenseInput[id=181]");
+
+      assertEquals(List.of(), trace.transactionDetails());
+    }
+  }
 }

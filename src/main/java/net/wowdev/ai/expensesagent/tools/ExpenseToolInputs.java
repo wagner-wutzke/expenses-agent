@@ -2,6 +2,7 @@ package net.wowdev.ai.expensesagent.tools;
 
 import net.wowdev.ai.expensesagent.model.ExpenseType;
 import org.springframework.context.annotation.Description;
+import org.springframework.ai.tool.annotation.ToolParam;
 
 public final class ExpenseToolInputs {
   private ExpenseToolInputs() {}
@@ -39,12 +40,12 @@ public final class ExpenseToolInputs {
       @Description("Number of months before the current month: 0 this month, 1 last month, 2 two months ago, etc. Use 0 when no month is mentioned.") Integer monthsAgo) {}
 
   public record UpdateExpenseInput(
-      @Description("ID of the existing transaction to update") Long id,
-      @Description("New amount, or leave empty to keep the existing amount") Double amount,
-      @Description("New category, or leave empty to keep the existing category") String category,
-      @Description("New complete description, or leave empty to keep the existing description") String description,
-      @Description("New date in YYYY-MM-DD format, or leave empty to keep the existing date") String date,
-      @Description("New type DEBIT or CREDIT, or leave empty to keep the existing type") ExpenseType type) {}
+      @ToolParam(required = true, description = "ID of the existing transaction to update") Long id,
+      @ToolParam(required = false, description = "New amount; omit to keep the existing amount") Double amount,
+      @ToolParam(required = false, description = "New category; omit to keep the existing category") String category,
+      @ToolParam(required = false, description = "New complete description; omit to keep the existing description") String description,
+      @ToolParam(required = false, description = "New date in YYYY-MM-DD format; omit to keep the existing date") String date,
+      @ToolParam(required = false, description = "New type DEBIT or CREDIT; omit to keep the existing type") ExpenseType type) {}
 
   public record DeleteExpenseInput(
       @Description("ID of the transaction to delete") Long id,

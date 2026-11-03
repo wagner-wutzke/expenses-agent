@@ -71,7 +71,8 @@
       traceResponse.textContent = answer;
       updateTokenUsage(turn.tokenUsage);
       setTraceState("COMPLETE");
-      appendMessage("assistant", answer, false, turn.transactions);
+      const wasUpdated = turn.reasoning?.includes("Action: updateExpense") ?? false;
+      appendMessage("assistant", wasUpdated ? removeItemizedRecords(answer) : answer, false, turn.transactions);
     } catch (error) {
       pending.remove();
       const errorMessage = error.message || "I couldn't reach the assistant. Please try again.";
@@ -122,6 +123,15 @@
     messages.append(row);
     messages.scrollTop = messages.scrollHeight;
     return row;
+  }
+
+  function removeItemizedRecords(text) {
+    return text
+      .split(/\r?\n/)
+      .filter((line) => !/^\s*(?:[-*]\s*)?ID\s*:?\s*\d+\s*\|/i.test(line))
+      .filter((line) => !/^\s*\|.*\|\s*$/.test(line))
+      .join("\n")
+      .trim();
   }
 
   function makeTransactionTableMarkdown(text, transactions) {

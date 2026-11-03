@@ -45,6 +45,9 @@ public final class ChatTrace implements AutoCloseable {
   }
 
   public List<TransactionDetails> transactionDetails() {
+    if (events.stream().anyMatch(event -> event.tool().equals("updateExpense"))) {
+      return List.of();
+    }
     return events.stream().flatMap(event -> event.transactions().stream()).distinct().toList();
   }
 
