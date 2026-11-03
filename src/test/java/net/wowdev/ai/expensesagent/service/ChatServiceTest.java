@@ -7,12 +7,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import net.wowdev.ai.expensesagent.tools.AddExpenseTool;
+import net.wowdev.ai.expensesagent.tools.DeleteExpenseTool;
 import net.wowdev.ai.expensesagent.tools.GetExpensesByCategoryTool;
 import net.wowdev.ai.expensesagent.tools.GetFinancialSummaryTool;
 import net.wowdev.ai.expensesagent.tools.GetSpendingBreakdownTool;
 import net.wowdev.ai.expensesagent.tools.GetTotalSpendingTool;
 import net.wowdev.ai.expensesagent.tools.GetTransactionsTool;
 import net.wowdev.ai.expensesagent.tools.SetDefaultMonthlyIncomeTool;
+import net.wowdev.ai.expensesagent.tools.UpdateExpenseTool;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.ai.chat.client.ChatClient;
@@ -52,7 +54,7 @@ class ChatServiceTest {
     when(usage.getCompletionTokens()).thenReturn(4);
     when(usage.getTotalTokens()).thenReturn(24);
     assertEquals(new ChatTurn("How much?", "No expense tools were called. The assistant used your prompt and conversation context to respond.", "$12", new TokenUsage(20, 4, 24)),
-        new ChatService(client, tools.add(), tools.byCategory(), tools.total(), tools.summary(), tools.breakdown(), tools.salary(), tools.transactions())
+        new ChatService(client, tools.add(), tools.byCategory(), tools.total(), tools.summary(), tools.breakdown(), tools.salary(), tools.transactions(), tools.update(), tools.delete())
             .askAgent("How much?", "u:s"));
     ArgumentCaptor<Consumer<ChatClient.AdvisorSpec>> advisorCaptor = ArgumentCaptor.forClass(Consumer.class);
     verify(request).advisors(advisorCaptor.capture());
@@ -85,7 +87,7 @@ class ChatServiceTest {
             "No expense tools were called. The assistant used your prompt and conversation context to respond.",
             "",
             TokenUsage.unavailable()),
-        new ChatService(client, tools.add(), tools.byCategory(), tools.total(), tools.summary(), tools.breakdown(), tools.salary(), tools.transactions())
+        new ChatService(client, tools.add(), tools.byCategory(), tools.total(), tools.summary(), tools.breakdown(), tools.salary(), tools.transactions(), tools.update(), tools.delete())
             .askAgent("hello", "u:s"));
   }
 
@@ -97,7 +99,9 @@ class ChatServiceTest {
         mock(GetFinancialSummaryTool.class),
         mock(GetSpendingBreakdownTool.class),
         mock(SetDefaultMonthlyIncomeTool.class),
-        mock(GetTransactionsTool.class));
+        mock(GetTransactionsTool.class),
+        mock(UpdateExpenseTool.class),
+        mock(DeleteExpenseTool.class));
   }
 
   private record ToolMocks(
@@ -107,9 +111,11 @@ class ChatServiceTest {
       GetFinancialSummaryTool summary,
       GetSpendingBreakdownTool breakdown,
       SetDefaultMonthlyIncomeTool salary,
-      GetTransactionsTool transactions) {
+      GetTransactionsTool transactions,
+      UpdateExpenseTool update,
+      DeleteExpenseTool delete) {
     Object[] asArray() {
-      return new Object[] {add, byCategory, total, summary, breakdown, salary, transactions};
+      return new Object[] {add, byCategory, total, summary, breakdown, salary, transactions, update, delete};
     }
   }
 }

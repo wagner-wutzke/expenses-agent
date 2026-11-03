@@ -71,7 +71,7 @@
       traceResponse.textContent = answer;
       updateTokenUsage(turn.tokenUsage);
       setTraceState("COMPLETE");
-      appendMessage("assistant", answer);
+      appendMessage("assistant", answer, false, turn.transactions);
     } catch (error) {
       pending.remove();
       const errorMessage = error.message || "I couldn't reach the assistant. Please try again.";
@@ -85,7 +85,7 @@
     }
   });
 
-  function appendMessage(role, text, isError = false) {
+  function appendMessage(role, text, isError = false, transactions = []) {
     const row = document.createElement("div");
     row.className = `message-row ${role === "user" ? "user-message" : "assistant-message"}`;
 
@@ -111,7 +111,10 @@
     meta.append(time);
     const bubble = document.createElement("div");
     bubble.className = "message-bubble";
-    renderMarkdown(bubble, text);
+    const response = role === "assistant" && Array.isArray(transactions) && transactions.length
+      ? makeTransactionTableMarkdown(text, transactions)
+      : text;
+    renderMarkdown(bubble, response);
     if (isError) bubble.setAttribute("role", "alert");
 
     content.append(meta, bubble);
@@ -119,6 +122,29 @@
     messages.append(row);
     messages.scrollTop = messages.scrollHeight;
     return row;
+  }
+
+  function makeTransactionTableMarkdown(text, transactions) {
+    const headers = ["ID", "Date", "Category", "Description", "Type", "Amount"];
+    const rows = transactions.map((transaction) => {
+      const amount = Number.isFinite(transaction.amount)
+        ? new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(transaction.amount)
+        : "—";
+      return [transaction.id, transaction.date, transaction.category, transaction.description, transaction.type, amount];
+    });
+    const table = [
+      `| ${headers.join(" | ")} |`,
+      `| ${headers.map(() => "---").join(" | ")} |`,
+      ...rows.map((row) => `| ${row.map(formatMarkdownCell).join(" | ")} |`)
+    ].join("\n");
+    return table;
+  }
+
+  function formatMarkdownCell(value) {
+    return String(value ?? "—")
+      .replaceAll("\\", "\\\\")
+      .replaceAll("|", "\\|")
+      .replace(/[\r\n]+/g, " ");
   }
 
   function appendTypingIndicator() {

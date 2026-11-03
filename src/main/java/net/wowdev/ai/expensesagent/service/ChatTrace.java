@@ -2,6 +2,7 @@ package net.wowdev.ai.expensesagent.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.wowdev.ai.expensesagent.model.Expense;
 
 /** Captures observable finance-tool activity during one synchronous chat request. */
 public final class ChatTrace implements AutoCloseable {
@@ -20,8 +21,31 @@ public final class ChatTrace implements AutoCloseable {
   public static void record(String tool, String input) {
     List<Event> events = ACTIVE.get();
     if (events != null) {
-      events.add(new Event(tool, input));
+      events.add(new Event(tool, input, List.of()));
     }
+  }
+
+  public static void recordTransactions(String tool, String input, List<Expense> expenses) {
+    List<Event> events = ACTIVE.get();
+    if (events != null) {
+      List<TransactionDetails> transactions =
+          expenses.stream()
+              .map(
+                  expense ->
+                      new TransactionDetails(
+                          expense.getId(),
+                          expense.getDate(),
+                          expense.getCategory(),
+                          expense.getDescription(),
+                          expense.getAmount(),
+                          expense.getType()))
+              .toList();
+      events.add(new Event(tool, input, transactions));
+    }
+  }
+
+  public List<TransactionDetails> transactionDetails() {
+    return events.stream().flatMap(event -> event.transactions().stream()).distinct().toList();
   }
 
   public String reasoningSummary() {
@@ -43,5 +67,5 @@ public final class ChatTrace implements AutoCloseable {
     ACTIVE.remove();
   }
 
-  private record Event(String tool, String input) {}
+  private record Event(String tool, String input, List<TransactionDetails> transactions) {}
 }

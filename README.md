@@ -8,6 +8,7 @@ Pennywise is a small conversational finance application built with Spring Boot a
 
 - Record transactions as `DEBIT` (money spent) or `CREDIT` (money received). If the direction is unclear, the agent asks before saving.
 - Look up itemized `DEBIT` expenses and/or `CREDIT` income, optionally by category, for this month or previous months. If no month is specified, reports use the current calendar month.
+- Itemized transaction results include record IDs, which can be used to update a transaction or request its deletion. Deletions require explicit user confirmation for the same record ID.
 - Show monthly `DEBIT` spending totals and category breakdowns. Breakdown results include the selected month and year and count `DEBIT` entries only.
 - Compare two or more supported months side by side when the prompt names each period. The agent queries each month separately, then can align monthly totals or category breakdowns in a Markdown table or chart.
 - Set a default monthly salary. The agent asks for explicit confirmation before changing an existing salary.
@@ -26,7 +27,7 @@ flowchart LR
     Client --> Advisors[Memory, logging, guardrail advisors]
     Client --> Model[OpenAI ChatModel]
     Model -->|Tool call request| Client
-    Client --> Tools[Seven one-tool components]
+    Client --> Tools[Nine one-tool components]
     Tools --> Repositories[Spring Data repositories]
     Repositories --> Database[(H2 database)]
     Client -->|Chat response and usage| Service
@@ -36,7 +37,7 @@ flowchart LR
 
 The browser sends a prompt to `AgentController`. The controller combines the supplied `userId` and `sessionId` into a conversation ID, then delegates to `ChatService`. The service builds a Spring AI request with the prompt, conversation memory, tool context, and the application's tool components. Spring AI calls the configured model, which can request one or more tools. The tools use Spring Data repositories to read or update H2 records. The service returns the prompt, an observable tool activity summary, model response, and token usage as a `ChatTurn`.
 
-The available tools are `AddExpenseTool`, `GetExpensesByCategoryTool`, `GetTransactionsTool`, `GetTotalSpendingTool`, `GetFinancialSummaryTool`, `GetSpendingBreakdownTool`, and `SetDefaultMonthlyIncomeTool`. Shared repository references and month-range logic are in `AbstractExpenseTool`; tool argument records are in `ExpenseToolInputs`.
+The available tools are `AddExpenseTool`, `GetExpensesByCategoryTool`, `GetTransactionsTool`, `GetTotalSpendingTool`, `GetFinancialSummaryTool`, `GetSpendingBreakdownTool`, `SetDefaultMonthlyIncomeTool`, `UpdateExpenseTool`, and `DeleteExpenseTool`. Shared repository references and month-range logic are in `AbstractExpenseTool`; tool argument records are in `ExpenseToolInputs`.
 
 ### Month-specific reports and comparisons
 
@@ -70,7 +71,7 @@ The `ChatModel` is supplied by Spring AI's OpenAI starter using the model and AP
 
 ### Chat request and tool registration
 
-`ChatService` attaches the current conversation ID to both the memory advisor and tool context. It registers the seven tool objects for the request:
+`ChatService` attaches the current conversation ID to both the memory advisor and tool context. It registers the nine tool objects for the request:
 
 ```java
 this.chatClient
@@ -140,7 +141,7 @@ Usage is reported when the configured model returns it; otherwise the API marks 
 
 1. A user types a message or selects a suggested prompt. The browser posts `userPrompt`, `userId`, and `sessionId` to `/api/agent/chat`.
 2. `AgentController` builds a conversation ID from the user and session IDs and invokes `ChatService.askAgent`.
-3. The Spring AI `ChatClient` assembles the system prompt, conversation memory, guardrail/logging advisors, the current prompt, and all seven tools.
+3. The Spring AI `ChatClient` assembles the system prompt, conversation memory, guardrail/logging advisors, the current prompt, and all nine tools.
 4. The model either responds directly or requests a tool. Spring AI dispatches a tool request to its annotated Java method. Tool results are returned to the model so it can prepare the user-facing response.
 5. The service packages the response with the prompt, tool activity summary, and token usage into a `ChatTurn` JSON response.
 6. The browser renders the answer as sanitized Markdown and Mermaid where applicable. It updates the collapsible prompt/activity panel and token counters.

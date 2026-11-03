@@ -32,13 +32,15 @@ public class GetExpensesByCategoryTool extends AbstractExpenseTool {
             .map(
                 expense ->
                     String.format(
-                        "- %s: %s$%.2f (%s)",
+                        "- ID %d | %s | %s | %s$%.2f (%s)",
+                        expense.getId(),
                         expense.getDate(),
+                        expense.getDescription(),
                         expense.getType() == ExpenseType.CREDIT ? "+" : "-",
                         expense.getAmount(),
                         expense.getType() == ExpenseType.CREDIT ? "credit" : "debit"))
             .collect(Collectors.joining("\n", "Transactions for " + input.category() + " (" + periodLabel(input.monthsAgo()) + "):\n", ""));
-    ChatTrace.record("getExpensesByCategoryTool", input.toString());
+    ChatTrace.recordTransactions("getExpensesByCategoryTool", input.toString(), expenses);
     return result;
   }
 }

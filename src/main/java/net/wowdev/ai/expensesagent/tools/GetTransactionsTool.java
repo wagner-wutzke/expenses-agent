@@ -53,7 +53,8 @@ public class GetTransactionsTool extends AbstractExpenseTool {
               .map(
                   e ->
                       String.format(
-                          "- %s | %s | %s: %s$%.2f (%s)",
+                          "- ID %d | %s | %s | %s: %s$%.2f (%s)",
+                          e.getId(),
                           e.getDate(),
                           e.getCategory(),
                           e.getDescription(),
@@ -64,7 +65,7 @@ public class GetTransactionsTool extends AbstractExpenseTool {
                   Collectors.joining(
                       "\n", title + " for " + periodLabel(input.monthsAgo()) + ":\n", ""));
     }
-    ChatTrace.record("getTransactions", input.toString());
+    ChatTrace.recordTransactions("getTransactions", input.toString(), transactions);
     return result;
   }
 }

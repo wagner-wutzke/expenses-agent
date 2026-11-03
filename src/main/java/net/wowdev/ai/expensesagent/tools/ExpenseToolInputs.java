@@ -38,6 +38,19 @@ public final class ExpenseToolInputs {
       @Description("Optional category filter, such as Grocery or Transport") String category,
       @Description("Number of months before the current month: 0 this month, 1 last month, 2 two months ago, etc. Use 0 when no month is mentioned.") Integer monthsAgo) {}
 
+  public record UpdateExpenseInput(
+      @Description("ID of the existing transaction to update") Long id,
+      @Description("New amount, or leave empty to keep the existing amount") Double amount,
+      @Description("New category, or leave empty to keep the existing category") String category,
+      @Description("New complete description, or leave empty to keep the existing description") String description,
+      @Description("New date in YYYY-MM-DD format, or leave empty to keep the existing date") String date,
+      @Description("New type DEBIT or CREDIT, or leave empty to keep the existing type") ExpenseType type) {}
+
+  public record DeleteExpenseInput(
+      @Description("ID of the transaction to delete") Long id,
+      @Description("True only after the user explicitly confirms deleting this exact transaction")
+          boolean confirmed) {}
+
   public record EmptyInput() {}
 
   public record SetSalaryInput(

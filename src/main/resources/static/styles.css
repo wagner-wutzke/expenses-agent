@@ -129,6 +129,10 @@ h1, h2, p { margin-top: 0; }
 .message-bubble table { display: block; max-width: 100%; margin: 8px 0; overflow-x: auto; border-collapse: collapse; white-space: nowrap; }
 .message-bubble th, .message-bubble td { padding: 5px 9px; border: 1px solid #dfe7df; text-align: left; }
 .message-bubble th { background: #e9f0e9; color: #40584a; font-weight: 700; }
+.transaction-records { margin-top: 13px; padding-top: 9px; border-top: 1px solid #dfe7df; }
+.transaction-records h4 { margin: 0 0 6px; color: #617368; font-size: 10px; font-weight: 700; }
+.transaction-record-table { font-size: 10px; }
+.transaction-record-table code.record-id { white-space: nowrap; font-weight: 700; }
 .message-bubble .mermaid { max-width: 100%; margin: 9px 0; overflow-x: auto; background: transparent; }
 .message-bubble .mermaid svg { display: block; max-width: 100%; height: auto; margin: 0 auto; font-family: var(--font-body); }
 .message-bubble .mermaid-fallback { color: #7a6456; white-space: pre-wrap; }

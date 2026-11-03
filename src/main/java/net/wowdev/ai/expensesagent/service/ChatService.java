@@ -2,12 +2,14 @@ package net.wowdev.ai.expensesagent.service;
 
 import java.util.Map;
 import net.wowdev.ai.expensesagent.tools.AddExpenseTool;
+import net.wowdev.ai.expensesagent.tools.DeleteExpenseTool;
 import net.wowdev.ai.expensesagent.tools.GetExpensesByCategoryTool;
 import net.wowdev.ai.expensesagent.tools.GetFinancialSummaryTool;
 import net.wowdev.ai.expensesagent.tools.GetSpendingBreakdownTool;
 import net.wowdev.ai.expensesagent.tools.GetTotalSpendingTool;
 import net.wowdev.ai.expensesagent.tools.GetTransactionsTool;
 import net.wowdev.ai.expensesagent.tools.SetDefaultMonthlyIncomeTool;
+import net.wowdev.ai.expensesagent.tools.UpdateExpenseTool;
 import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -29,7 +31,9 @@ public class ChatService {
       GetFinancialSummaryTool getFinancialSummaryTool,
       GetSpendingBreakdownTool getSpendingBreakdownTool,
       SetDefaultMonthlyIncomeTool setDefaultMonthlyIncomeTool,
-      GetTransactionsTool getTransactionsTool) {
+      GetTransactionsTool getTransactionsTool,
+      UpdateExpenseTool updateExpenseTool,
+      DeleteExpenseTool deleteExpenseTool) {
     this.chatClient = chatClient;
     this.tools =
         new Object[] {
@@ -39,7 +43,9 @@ public class ChatService {
           getFinancialSummaryTool,
           getSpendingBreakdownTool,
           setDefaultMonthlyIncomeTool,
-          getTransactionsTool
+          getTransactionsTool,
+          updateExpenseTool,
+          deleteExpenseTool
         };
   }
 
@@ -67,7 +73,12 @@ public class ChatService {
               ? TokenUsage.unavailable()
               : new TokenUsage(
                   usage.getPromptTokens(), usage.getCompletionTokens(), usage.getTotalTokens());
-      return new ChatTurn(userPrompt, trace.reasoningSummary(), response, tokenUsage);
+      return new ChatTurn(
+          userPrompt,
+          trace.reasoningSummary(),
+          response,
+          tokenUsage,
+          trace.transactionDetails());
     }
   }
 }

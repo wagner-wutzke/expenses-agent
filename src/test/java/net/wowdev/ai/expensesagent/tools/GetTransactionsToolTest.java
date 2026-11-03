@@ -36,7 +36,7 @@ class GetTransactionsToolTest {
                 new Expense(3L, month.atDay(4), "Dining", "Lunch", 12.0)));
 
     assertEquals(
-        "Expenses for this month:\n- "
+        "Expenses for this month:\n- ID 1 | "
             + month.atDay(2)
             + " | Groceries | Market vegetables: -$24.50 (debit)",
         tool.getTransactions(
@@ -60,7 +60,7 @@ class GetTransactionsToolTest {
                     ExpenseType.CREDIT)));
 
     assertEquals(
-        "Income for last month:\n- "
+        "Income for last month:\n- ID 1 | "
             + previousMonth.atDay(7)
             + " | Side work | Evening translation: +$85.00 (credit)",
         tool.getTransactions(
@@ -80,8 +80,8 @@ class GetTransactionsToolTest {
 
     assertEquals(
         "Transactions for this month:\n"
-            + "- " + month.atDay(1) + " | Dining | Breakfast: -$8.00 (debit)\n"
-            + "- " + month.atDay(2) + " | Sale | Sold desk lamp: +$16.00 (credit)",
+            + "- ID 1 | " + month.atDay(1) + " | Dining | Breakfast: -$8.00 (debit)\n"
+            + "- ID 2 | " + month.atDay(2) + " | Sale | Sold desk lamp: +$16.00 (credit)",
         tool.getTransactions(new ExpenseToolInputs.TransactionsInput(null, " ", null)));
   }
 
