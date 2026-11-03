@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -14,12 +16,27 @@ class ChatConfigurationTest {
   private ChatConfiguration configuration(String prompt) {
     ChatConfiguration configuration = new ChatConfiguration();
     ReflectionTestUtils.setField(configuration, "systemPrompt", new ByteArrayResource(prompt.getBytes(StandardCharsets.UTF_8)));
+    ReflectionTestUtils.setField(configuration, "chatMemoryWindowSize", 30);
     return configuration;
   }
 
   @Test void buildsClientWhenPromptIsNonblank() {
     ChatClient client = configuration("You are helpful").chatClient(new StubChatModel(), new FinancialGuardrailAdvisor());
     assertNotNull(client);
+  }
+
+  @Test void createsMemoryWindowWithConfiguredMessageLimit() {
+    ChatConfiguration configuration = configuration("You are helpful");
+    ReflectionTestUtils.setField(configuration, "chatMemoryWindowSize", 2);
+    ChatMemory chatMemory = configuration.chatMemory();
+
+    chatMemory.add(
+        "window-test",
+        java.util.List.of(new UserMessage("first"), new UserMessage("second"), new UserMessage("third")));
+
+    assertEquals(2, chatMemory.get("window-test").size());
+    assertEquals("second", chatMemory.get("window-test").get(0).getText());
+    assertEquals("third", chatMemory.get("window-test").get(1).getText());
   }
 
   @Test void rejectsMissingAndBlankPrompt() {

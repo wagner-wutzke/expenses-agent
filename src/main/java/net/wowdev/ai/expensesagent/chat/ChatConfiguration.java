@@ -21,23 +21,28 @@ public class ChatConfiguration {
   @Value("${agent.system-prompt-file}")
   private Resource systemPrompt;
 
+  @Value("${agent.chat.memory.window.size:30}")
+  private int chatMemoryWindowSize;
+
+  @Bean
+  public ChatMemory chatMemory() {
+    return MessageWindowChatMemory.builder()
+        .chatMemoryRepository(new InMemoryChatMemoryRepository())
+        .maxMessages(chatMemoryWindowSize)
+        .build();
+  }
+
   @Bean
   public ChatClient chatClient(
       ChatModel chatModel, FinancialGuardrailAdvisor financialGuardrailAdvisor) {
 
     validateSystemPrompt();
 
-    ChatMemory chatMemory =
-        MessageWindowChatMemory.builder()
-            .chatMemoryRepository(new InMemoryChatMemoryRepository())
-            .maxMessages(20)
-            .build();
-
     return ChatClient.builder(chatModel)
         .defaultSystem(systemPrompt, StandardCharsets.UTF_8)
         .defaultAdvisors(
             new SimpleLoggerAdvisor(Ordered.LOWEST_PRECEDENCE),
-            MessageChatMemoryAdvisor.builder(chatMemory).build(),
+            MessageChatMemoryAdvisor.builder(chatMemory()).build(),
             financialGuardrailAdvisor)
         .build();
   }

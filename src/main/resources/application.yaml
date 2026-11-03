@@ -42,6 +42,10 @@ spring:
         web-allow-others: ${H2_CONSOLE_WEB_ALLOW_OTHERS:true}
 
 agent:
+  chat:
+    memory:
+      window:
+        size: 30
   system-prompt-file: ${AGENT_SYSTEM_PROMPT_FILE:classpath:prompts/system-prompt.txt}
 
 
