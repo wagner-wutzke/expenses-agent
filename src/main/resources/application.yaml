@@ -46,7 +46,7 @@ agent:
     memory:
       window:
         size: 30
-  system-prompt-file: ${AGENT_SYSTEM_PROMPT_FILE:classpath:prompts/system-prompt.txt}
+  system-prompt-file: ${AGENT_SYSTEM_PROMPT_FILE:classpath:prompts/system-prompt.md}
 
 
 logging:
