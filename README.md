@@ -17,6 +17,23 @@ Pennywise is a small conversational finance application built with Spring Boot a
 - Use a vanilla JavaScript, HTML, and CSS frontend with Bootstrap. Markdown and Mermaid output are rendered in chat; a collapsible panel shows the prompt, tool activity summary, response, and token counts.
 - Store expenses and configuration in a local, file-backed H2 database.
 
+### Prompt & reasoning panel
+
+The collapsible **Prompt & reasoning** panel sits at the bottom of the chat. It stays collapsed until the user opens it, and its contents are cleared when a new prompt is sent. The panel describes the latest chat turn in four parts:
+
+- **Input prompt:** the prompt sent for this turn.
+- **Reasoning summary:** an observable activity log showing which finance tools the agent called and the arguments supplied to each call. This is a concise tool-use summary, not the model's private chain-of-thought, and it does not repeat the assistant's response.
+- **Response:** the assistant's answer for the latest turn, shown separately from the activity summary.
+- **Token usage:** input, output, and total token counts reported in the model response metadata. The panel indicates when the model does not return usage data.
+
+The panel also shows whether the current request is ready, working, complete, or has ended with an error. It helps users inspect the request and tool activity; it does not expose hidden model reasoning or provide a complete record of every internal model operation.
+
+<p style="text-align:center">
+    <img src="docs/images/pennywise-01.png" width="750">
+    <br/><br/>
+    <img src="docs/images/pennywise-03.png" width="750">
+</p>
+
 ## Architecture
 
 ```mermaid
