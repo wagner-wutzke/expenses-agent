@@ -207,6 +207,18 @@ curl -X POST \
 
 The API accepts `userPrompt` as a required query parameter. `userId` and `sessionId` default to `user-id` and `session-id` if omitted. The H2 console is available at <http://localhost:8181/h2-console> by default. Use JDBC URL `jdbc:h2:file:./data/expenses-agent`, username `sa`, and a blank password.
 
+### Load sample transaction data
+
+The optional [`scripts/seed-sample-transactions.sql`](scripts/seed-sample-transactions.sql) script inserts 140 sample transactions: 30 DEBIT expenses and 5 CREDIT incomes for each of the current month and the three previous months. The descriptions and categories vary by month so the data is useful for trying category searches and month-to-month comparisons.
+
+Start the application once so Hibernate can create the database tables, then open the H2 console at <http://localhost:8181/h2-console>. Connect with the JDBC URL, username, and password shown above and execute:
+
+```sql
+RUNSCRIPT FROM 'scripts/seed-sample-transactions.sql';
+```
+
+Run this only against a local development database: the script begins by deleting **all existing rows from `expenses`** before inserting the sample data. It does not delete configuration entries. You can run it again to reset the expense data to a fresh sample set.
+
 Run the test suite and JaCoCo coverage gate with:
 
 ```bash
