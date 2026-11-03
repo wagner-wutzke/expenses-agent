@@ -12,6 +12,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
   List<Expense> findByCategoryIgnoreCaseAndDateGreaterThanEqualAndDateLessThan(
       String category, LocalDate startDate, LocalDate endDate);
 
+  List<Expense> findByDateGreaterThanEqualAndDateLessThanOrderByDateAsc(
+      LocalDate startDate, LocalDate endDate);
+
   @Query("SELECT COALESCE(SUM(e.amount), 0.0) FROM Expense e WHERE e.type = DEBIT AND e.date >= :startDate AND e.date < :endDate")
   Double getTotalSpending(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 

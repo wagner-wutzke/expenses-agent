@@ -20,7 +20,8 @@ public class AddExpenseTool extends AbstractExpenseTool {
       description =
           "Log a money transaction. Use DEBIT for spending or bills and CREDIT for incoming money "
               + "such as sales or extra work. Amounts are positive. If direction is unclear, ask "
-              + "whether it is DEBIT or CREDIT and do not log until clarified.")
+              + "whether it is DEBIT or CREDIT and do not log until clarified. Save the complete "
+              + "description exactly as the user gives it; never shorten, summarize, or paraphrase it.")
   public String addExpenseTool(ExpenseToolInputs.AddExpenseInput input) {
     if (input.type() == null) {
       String result =

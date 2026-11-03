@@ -46,28 +46,28 @@ button, textarea { font: inherit; }
 
 .main-content { max-width: 1440px; min-height: 100vh; margin-left: 238px; padding: 0 52px; }
 
-.welcome-section { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 148px; padding: 8px 12px 0; }
+.welcome-section { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 108px; padding: 4px 12px 0; }
 .eyebrow { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #87928a; font-size: 9px; font-weight: 700; letter-spacing: 1.05px; }
 .eyebrow-line { width: 19px; height: 1px; background: #9dba9f; }
 h1, h2, p { margin-top: 0; }
 .welcome-section h1 { margin-bottom: 7px; font-family: var(--font-display); font-size: clamp(30px, 3.5vw, 41px); font-weight: 700; letter-spacing: -2px; }
 .welcome-section h1 span { color: var(--green); }
 .welcome-subtitle { margin: 0; color: #869189; font-size: 12px; }
-.welcome-orbit { position: relative; width: 137px; height: 137px; margin-right: 35px; }
+.welcome-orbit { position: relative; width: 100px; height: 100px; margin-right: 35px; }
 .orbit-ring { position: absolute; inset: 1px; border: 1px solid #e1ebe0; border-radius: 50%; }
 .orbit-ring-inner { inset: 15px; border-color: #ebf0e9; }
-.orbit-coin { position: absolute; top: 37px; left: 37px; display: grid; width: 64px; height: 64px; place-items: center; border: 1px solid #d9e8db; border-radius: 50%; background: linear-gradient(145deg, #f4f8ed, #e7f0e5); box-shadow: 0 8px 18px #607a5612, inset 0 1px #fff; color: #507960; font-family: var(--font-display); font-size: 25px; font-weight: 700; }
+.orbit-coin { position: absolute; top: 22px; left: 22px; display: grid; width: 56px; height: 56px; place-items: center; border: 1px solid #d9e8db; border-radius: 50%; background: linear-gradient(145deg, #f4f8ed, #e7f0e5); box-shadow: 0 8px 18px #607a5612, inset 0 1px #fff; color: #507960; font-family: var(--font-display); font-size: 23px; font-weight: 700; }
 .orbit-spark { position: absolute; color: #dca67c; }
 .spark-a { top: 5px; right: 16px; font-size: 13px; }
 .spark-b { bottom: 11px; left: 6px; color: #88a88d; font-size: 11px; }
 
 .overview-grid { display: grid; grid-template-columns: minmax(245px, .84fr) minmax(360px, 1.16fr); gap: 18px; }
-.feature-card { position: relative; min-height: 170px; overflow: hidden; padding: 14px 20px 13px; border-radius: 17px; background: var(--green); color: #fff; }
+.feature-card { position: relative; min-height: 124px; overflow: hidden; padding: 8px 20px; border-radius: 17px; background: var(--green); color: #fff; }
 .feature-topline { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; }
 .feature-icon { display: grid; width: 31px; height: 31px; place-items: center; border: 1px solid #ffffff40; border-radius: 10px; color: #d6ecdb; font-size: 14px; }
 .available-tag { display: flex; align-items: center; gap: 6px; color: #b8d3c0; font-size: 9px; font-weight: 600; letter-spacing: .7px; }
 .available-tag span { width: 5px; height: 5px; background: #a5d4a8; box-shadow: 0 0 0 3px #a5d4a81c; }
-.feature-card h2 { position: relative; z-index: 1; margin: 4px 0 3px; font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: -.9px; line-height: 1.08; }
+.feature-card h2 { position: relative; z-index: 1; margin: 2px 0; font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: -.9px; line-height: 1.04; }
 .feature-card h2 span { color: #bfe1c6; }
 .feature-card > p { position: relative; z-index: 1; max-width: 245px; margin: 0; color: #c0d4c6; font-size: 10px; line-height: 1.3; }
 .feature-cta { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; color: #fff; font-size: 10px; font-weight: 600; text-decoration: none; }
@@ -82,21 +82,21 @@ h1, h2, p { margin-top: 0; }
 .deco-coin-two { right: 73px; bottom: 20px; width: 25px; height: 25px; font-size: 11px; }
 .deco-line { position: absolute; right: 29px; bottom: 33px; width: 58px; height: 33px; border-top: 1px solid #ffffff31; border-radius: 50%; transform: rotate(-30deg); }
 
-.quick-card { min-height: 170px; padding: 14px 16px 12px; border: 1px solid #e9ece7; border-radius: 17px; background: #fff; }
-.quick-card h2 { margin: 4px 0 8px; font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: -.35px; }
+.quick-card { min-height: 124px; padding: 8px 16px; border: 1px solid #e9ece7; border-radius: 17px; background: #fff; }
+.quick-card h2 { margin: 2px 0 6px; font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: -.35px; }
 .quick-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
-.quick-action { position: relative; display: flex; min-width: 0; min-height: 96px; flex-direction: column; align-items: flex-start; gap: 7px; padding: 8px; border: 1px solid #edf0ec; border-radius: 11px; background: #fff; text-align: left; transition: border-color .15s, background .15s, transform .15s; }
+.quick-action { position: relative; display: flex; min-width: 0; min-height: 52px; flex-direction: row; align-items: center; gap: 8px; padding: 5px 8px; border: 1px solid #edf0ec; border-radius: 11px; background: #fff; text-align: left; transition: border-color .15s, background .15s, transform .15s; }
 .quick-action:hover { transform: translateY(-2px); border-color: #dce8dc; background: #fafcf9; }
-.quick-icon { display: grid; width: 33px; height: 33px; flex: 0 0 33px; place-items: center; border-radius: 11px; font-size: 13px; }
+.quick-icon { display: grid; width: 29px; height: 29px; flex: 0 0 29px; place-items: center; border-radius: 10px; font-size: 12px; }
 .quick-icon.mint { background: #e8f3eb; color: #558269; }
 .quick-icon.peach { background: #fbede5; color: #c2805e; }
 .quick-icon.lavender { background: #f0edf8; color: #8275a5; }
-.quick-action > span:nth-child(2) { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.quick-action > span:nth-child(2) { display: flex; min-width: 0; flex-direction: column; gap: 2px; padding-right: 8px; }
 .quick-action strong { color: #46544a; font-size: 10px; font-weight: 700; }
 .quick-action small { color: #9ba49d; font-size: 9px; }
 .action-arrow { position: absolute; top: 10px; right: 9px; color: #a9b1ab; font-size: 11px; }
 
-.assistant-section { padding-top: 29px; }
+.assistant-section { padding-top: 17px; }
 .assistant-heading { display: flex; align-items: center; gap: 11px; margin: 0 1px 12px; }
 .assistant-heading-icon { display: grid; width: 33px; height: 33px; place-items: center; border-radius: 11px; background: #e6f0e8; color: #5e8b6d; font-size: 14px; }
 .assistant-heading .section-kicker { margin-bottom: 3px; font-size: 8px; }
@@ -104,7 +104,7 @@ h1, h2, p { margin-top: 0; }
 .assistant-status { display: flex; align-items: center; gap: 6px; margin-left: auto; color: #839087; font-size: 9px; }
 .assistant-status span { width: 6px; height: 6px; }
 .chat-card { overflow: hidden; border: 1px solid #e8ece6; border-radius: 16px; background: #fff; box-shadow: 0 7px 25px #273a2710; }
-.chat-messages { display: flex; min-height: 105px; max-height: 340px; flex-direction: column; gap: 17px; overflow-y: auto; padding: 20px 22px 15px; }
+.chat-messages { display: flex; min-height: 32vh; max-height: 58vh; flex-direction: column; gap: 17px; overflow-y: auto; padding: 20px 22px 15px; }
 .message-row { display: flex; align-items: flex-start; gap: 10px; animation: message-in .2s ease-out; }
 @keyframes message-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 .message-avatar { display: grid; width: 26px; height: 26px; flex: 0 0 26px; place-items: center; border-radius: 9px; background: #e7f1e9; color: #548265; font-size: 14px; }
@@ -155,9 +155,6 @@ h1, h2, p { margin-top: 0; }
 .send-button:disabled { cursor: wait; opacity: .55; }
 .disclaimer { display: flex; align-items: center; gap: 5px; margin: 8px 3px 0; color: #a4ada5; font-size: 8px; }
 .disclaimer i { font-size: 10px; }
-.page-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 27px; padding: 13px 3px 18px; border-top: 1px solid #e9ece7; color: #a0a9a1; font-size: 8px; }
-.page-footer > span:last-child { font-size: 7px; font-weight: 600; letter-spacing: .9px; }
-.footer-heart { color: #d98d70; }
 
 .trace-dock { position: fixed; z-index: 20; right: 0; bottom: 0; left: 238px; overflow: hidden; border: 1px solid #e4e9e2; border-bottom: 0; border-radius: 15px 15px 0 0; background: #fff; box-shadow: 0 -9px 30px #28392d12; }
 .trace-toggle { display: flex; align-items: center; width: 100%; min-height: 59px; gap: 11px; padding: 9px 23px; border: 0; background: #fff; color: var(--ink); text-align: left; }
@@ -216,25 +213,24 @@ h1, h2, p { margin-top: 0; }
   .trace-column + .trace-column { border-top: 1px solid #edf0ec; border-left: 0; }
   .trace-column pre { max-height: 90px; }
   .trace-toggle { min-height: 55px; padding: 8px 15px; }
-  .welcome-section { min-height: 132px; padding-right: 1px; padding-left: 1px; }
-  .welcome-orbit { width: 105px; height: 105px; margin-right: 3px; }
-  .orbit-coin { top: 28px; left: 28px; width: 50px; height: 50px; font-size: 21px; }
+  .welcome-section { min-height: 108px; padding-right: 1px; padding-left: 1px; }
+  .welcome-orbit { width: 90px; height: 90px; margin-right: 3px; }
+  .orbit-coin { top: 20px; left: 20px; width: 50px; height: 50px; font-size: 21px; }
   .overview-grid { grid-template-columns: 1fr; }
-  .feature-card { min-height: 170px; padding: 14px 18px; }
+  .feature-card { min-height: 124px; padding: 8px 18px; }
   .feature-card h2 { font-size: 24px; }
-  .quick-card { min-height: 170px; }
+  .quick-card { min-height: 124px; padding-top: 8px; padding-bottom: 8px; }
   .quick-action small { display: none; }
-  .assistant-section { padding-top: 24px; }
-  .chat-messages { max-height: 380px; padding-right: 15px; padding-left: 15px; }
+  .assistant-section { padding-top: 17px; }
+  .chat-messages { min-height: 30vh; max-height: 48vh; padding-right: 15px; padding-left: 15px; }
   .suggestion-row { padding-left: 15px; }
-  .page-footer { margin-top: 23px; }
 }
 @media (max-width: 420px) {
   .main-content { padding-right: 14px; padding-left: 14px; }
   .welcome-section h1 { font-size: 29px; }
-  .welcome-orbit { width: 80px; height: 80px; }
+  .welcome-orbit { width: 72px; height: 72px; }
   .orbit-ring-inner { inset: 9px; }
-  .orbit-coin { top: 21px; left: 21px; width: 38px; height: 38px; font-size: 17px; }
+  .orbit-coin { top: 17px; left: 17px; width: 38px; height: 38px; font-size: 17px; }
   .suggestion-row { gap: 5px; }
   .suggestion-chip { padding: 0 8px; font-size: 8px; }
 }

@@ -16,14 +16,14 @@ public class GetExpensesByCategoryTool extends AbstractExpenseTool {
     super(expenseRepository, configurationRepository);
   }
 
-  @Tool(description = "Retrieves this month's itemized transactions matching a specific category.")
+  @Tool(description = "Retrieves itemized transactions matching a category for the requested calendar month. Interpret month requests such as last month, 2 months ago, or 3 months ago as monthsAgo = 1, 2, or 3. If no month is mentioned, use 0 for this month. Includes both DEBIT expenses and CREDIT income. Correct obvious misspellings in the category using the conversation context (for example, 'Gorcery' means 'Grocery').")
   public String getExpensesByCategoryTool(ExpenseToolInputs.CategoryInput input) {
-    DateRange range = currentMonth();
+    DateRange range = month(input.monthsAgo());
     List<net.wowdev.ai.expensesagent.model.Expense> expenses =
         expenseRepository.findByCategoryIgnoreCaseAndDateGreaterThanEqualAndDateLessThan(
             input.category(), range.startDate(), range.endDate());
     if (expenses.isEmpty()) {
-      String result = "No expenses found for category: " + input.category();
+      String result = "No expenses found for category " + input.category() + " in " + periodLabel(input.monthsAgo()) + ".";
       ChatTrace.record("getExpensesByCategoryTool", input.toString());
       return result;
     }
@@ -37,7 +37,7 @@ public class GetExpensesByCategoryTool extends AbstractExpenseTool {
                         expense.getType() == ExpenseType.CREDIT ? "+" : "-",
                         expense.getAmount(),
                         expense.getType() == ExpenseType.CREDIT ? "credit" : "debit"))
-            .collect(Collectors.joining("\n", "Expenses for " + input.category() + ":\n", ""));
+            .collect(Collectors.joining("\n", "Transactions for " + input.category() + " (" + periodLabel(input.monthsAgo()) + "):\n", ""));
     ChatTrace.record("getExpensesByCategoryTool", input.toString());
     return result;
   }

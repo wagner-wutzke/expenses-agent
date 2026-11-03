@@ -20,7 +20,7 @@ public class Expense {
 
   private LocalDate date;
   private String category;
-  private String description;
+  @Lob private String description;
   private Double amount;
 
   @Enumerated(EnumType.STRING)

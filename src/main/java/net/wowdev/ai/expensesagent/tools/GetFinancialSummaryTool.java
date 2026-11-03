@@ -18,11 +18,11 @@ public class GetFinancialSummaryTool extends AbstractExpenseTool {
 
   @Tool(
       description =
-          "Returns this month's summary with total DEBIT spending, total CREDIT income, configured "
+          "Returns a requested month's summary with total DEBIT spending, total CREDIT income, configured "
               + "default salary as Monthly income, and available balance (credits plus Monthly "
-              + "income minus spending). Always report every line returned.")
-  public String getFinancialSummaryTool(ExpenseToolInputs.EmptyInput input) {
-    DateRange range = currentMonth();
+              + "income minus spending). Accept monthsAgo (0 this month, 1 last month, 2 two months ago, etc.; use 0 when omitted). Always report every line returned.")
+  public String getFinancialSummaryTool(ExpenseToolInputs.PeriodInput input) {
+    DateRange range = month(input.monthsAgo());
     Double totalSpent = expenseRepository.getTotalSpending(range.startDate(), range.endDate());
     Double totalCredits = expenseRepository.getTotalCredits(range.startDate(), range.endDate());
     Double configuredSalary =
@@ -34,14 +34,18 @@ public class GetFinancialSummaryTool extends AbstractExpenseTool {
     String result =
         String.format(
                 """
-                Total Spent this month: $%.2f
-                Total Credit this month: $%.2f
+                Total Spent %s: $%.2f
+                Total Credit %s: $%.2f
                 Monthly income: $%.2f
-                Total available this month: $%.2f
+                Total available %s: $%.2f
                 """,
-                spending, credits, configuredSalary, credits + configuredSalary - spending)
+                periodLabel(input.monthsAgo()), spending, periodLabel(input.monthsAgo()), credits, configuredSalary, periodLabel(input.monthsAgo()), credits + configuredSalary - spending)
             .stripTrailing();
     ChatTrace.record("getFinancialSummaryTool", input.toString());
     return result;
+  }
+
+  public String getFinancialSummaryTool(ExpenseToolInputs.EmptyInput input) {
+    return getFinancialSummaryTool(new ExpenseToolInputs.PeriodInput(0));
   }
 }

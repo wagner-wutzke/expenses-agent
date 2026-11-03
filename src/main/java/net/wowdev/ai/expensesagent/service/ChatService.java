@@ -6,6 +6,7 @@ import net.wowdev.ai.expensesagent.tools.GetExpensesByCategoryTool;
 import net.wowdev.ai.expensesagent.tools.GetFinancialSummaryTool;
 import net.wowdev.ai.expensesagent.tools.GetSpendingBreakdownTool;
 import net.wowdev.ai.expensesagent.tools.GetTotalSpendingTool;
+import net.wowdev.ai.expensesagent.tools.GetTransactionsTool;
 import net.wowdev.ai.expensesagent.tools.SetDefaultMonthlyIncomeTool;
 import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.client.ChatClient;
@@ -27,7 +28,8 @@ public class ChatService {
       GetTotalSpendingTool getTotalSpendingTool,
       GetFinancialSummaryTool getFinancialSummaryTool,
       GetSpendingBreakdownTool getSpendingBreakdownTool,
-      SetDefaultMonthlyIncomeTool setDefaultMonthlyIncomeTool) {
+      SetDefaultMonthlyIncomeTool setDefaultMonthlyIncomeTool,
+      GetTransactionsTool getTransactionsTool) {
     this.chatClient = chatClient;
     this.tools =
         new Object[] {
@@ -36,7 +38,8 @@ public class ChatService {
           getTotalSpendingTool,
           getFinancialSummaryTool,
           getSpendingBreakdownTool,
-          setDefaultMonthlyIncomeTool
+          setDefaultMonthlyIncomeTool,
+          getTransactionsTool
         };
   }
 

@@ -38,4 +38,20 @@ class ExpenseRepositoryTest {
     assertEquals("Salary", configurationRepository.findById("deafult.salary").orElseThrow().getName());
     assertEquals(5000.0, salary.getValue());
   }
+
+  @Test
+  void persistsCompleteLongTransactionDescriptions() {
+    String description = "Detailed purchase note: " + "ingredient and event details; ".repeat(30);
+    Expense saved =
+        repository.save(
+            new Expense(
+                null,
+                LocalDate.now(),
+                "Dining",
+                description,
+                42.50,
+                ExpenseType.DEBIT));
+
+    assertEquals(description, repository.findById(saved.getId()).orElseThrow().getDescription());
+  }
 }

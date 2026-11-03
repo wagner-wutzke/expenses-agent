@@ -11,6 +11,7 @@ import net.wowdev.ai.expensesagent.tools.GetExpensesByCategoryTool;
 import net.wowdev.ai.expensesagent.tools.GetFinancialSummaryTool;
 import net.wowdev.ai.expensesagent.tools.GetSpendingBreakdownTool;
 import net.wowdev.ai.expensesagent.tools.GetTotalSpendingTool;
+import net.wowdev.ai.expensesagent.tools.GetTransactionsTool;
 import net.wowdev.ai.expensesagent.tools.SetDefaultMonthlyIncomeTool;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -51,7 +52,7 @@ class ChatServiceTest {
     when(usage.getCompletionTokens()).thenReturn(4);
     when(usage.getTotalTokens()).thenReturn(24);
     assertEquals(new ChatTurn("How much?", "No expense tools were called. The assistant used your prompt and conversation context to respond.", "$12", new TokenUsage(20, 4, 24)),
-        new ChatService(client, tools.add(), tools.byCategory(), tools.total(), tools.summary(), tools.breakdown(), tools.salary())
+        new ChatService(client, tools.add(), tools.byCategory(), tools.total(), tools.summary(), tools.breakdown(), tools.salary(), tools.transactions())
             .askAgent("How much?", "u:s"));
     ArgumentCaptor<Consumer<ChatClient.AdvisorSpec>> advisorCaptor = ArgumentCaptor.forClass(Consumer.class);
     verify(request).advisors(advisorCaptor.capture());
@@ -84,7 +85,7 @@ class ChatServiceTest {
             "No expense tools were called. The assistant used your prompt and conversation context to respond.",
             "",
             TokenUsage.unavailable()),
-        new ChatService(client, tools.add(), tools.byCategory(), tools.total(), tools.summary(), tools.breakdown(), tools.salary())
+        new ChatService(client, tools.add(), tools.byCategory(), tools.total(), tools.summary(), tools.breakdown(), tools.salary(), tools.transactions())
             .askAgent("hello", "u:s"));
   }
 
@@ -95,7 +96,8 @@ class ChatServiceTest {
         mock(GetTotalSpendingTool.class),
         mock(GetFinancialSummaryTool.class),
         mock(GetSpendingBreakdownTool.class),
-        mock(SetDefaultMonthlyIncomeTool.class));
+        mock(SetDefaultMonthlyIncomeTool.class),
+        mock(GetTransactionsTool.class));
   }
 
   private record ToolMocks(
@@ -104,9 +106,10 @@ class ChatServiceTest {
       GetTotalSpendingTool total,
       GetFinancialSummaryTool summary,
       GetSpendingBreakdownTool breakdown,
-      SetDefaultMonthlyIncomeTool salary) {
+      SetDefaultMonthlyIncomeTool salary,
+      GetTransactionsTool transactions) {
     Object[] asArray() {
-      return new Object[] {add, byCategory, total, summary, breakdown, salary};
+      return new Object[] {add, byCategory, total, summary, breakdown, salary, transactions};
     }
   }
 }

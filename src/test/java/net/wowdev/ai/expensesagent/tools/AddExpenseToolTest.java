@@ -17,12 +17,20 @@ class AddExpenseToolTest {
   @Test
   void savesDebitAtProvidedDate() {
     LocalDate date = LocalDate.of(2025, 3, 4);
+    String description =
+        "Dinner with Maya at the riverside market; shared grilled corn, spicy noodles, and tea after work.";
     when(expenses.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     assertEquals(
         "Success: Added debit $12.50 under category 'Food' on 2025-03-04.",
         tool.addExpenseTool(
-            new ExpenseToolInputs.AddExpenseInput(12.5, "Food", "Lunch", date.toString(), ExpenseType.DEBIT)));
-    verify(expenses).save(argThat(e -> e.getType() == ExpenseType.DEBIT && e.getDate().equals(date)));
+            new ExpenseToolInputs.AddExpenseInput(12.5, "Food", description, date.toString(), ExpenseType.DEBIT)));
+    verify(expenses)
+        .save(
+            argThat(
+                e ->
+                    e.getType() == ExpenseType.DEBIT
+                        && e.getDate().equals(date)
+                        && e.getDescription().equals(description)));
   }
 
   @Test

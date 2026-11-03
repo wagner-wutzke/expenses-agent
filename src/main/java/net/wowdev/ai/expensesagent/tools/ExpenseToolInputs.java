@@ -9,7 +9,7 @@ public final class ExpenseToolInputs {
   public record AddExpenseInput(
       @Description("The exact numerical transaction amount") Double amount,
       @Description("The category such as Food, Rent, or Side work") String category,
-      @Description("A short description of the transaction") String description,
+      @Description("The complete transaction description as stated by the user. Preserve it verbatim: do not shorten, summarize, paraphrase, or omit any details.") String description,
       @Description("Optional transaction date in YYYY-MM-DD format; defaults to today") String date,
       @Description("Required: DEBIT for money spent or CREDIT for money received. Ask if unclear.")
           ExpenseType type) {
@@ -19,7 +19,24 @@ public final class ExpenseToolInputs {
   }
 
   public record CategoryInput(
-      @Description("The category to look up for the current month") String category) {}
+      @Description("The category to look up") String category,
+      @Description("Number of months before the current month to query: 0 for this month, 1 for last month, 2 for two months ago. Use 0 if no month was requested.") Integer monthsAgo) {
+    public CategoryInput(String category) {
+      this(category, 0);
+    }
+  }
+
+  public record PeriodInput(
+      @Description("Number of months before the current month to query: 0 for this month, 1 for last month, 2 for two months ago, and so on. Use 0 if no month was requested.") Integer monthsAgo) {
+    public PeriodInput() {
+      this(0);
+    }
+  }
+
+  public record TransactionsInput(
+      @Description("Optional transaction type filter: DEBIT for spending or CREDIT for incoming money. Leave empty for both.") ExpenseType type,
+      @Description("Optional category filter, such as Grocery or Transport") String category,
+      @Description("Number of months before the current month: 0 this month, 1 last month, 2 two months ago, etc. Use 0 when no month is mentioned.") Integer monthsAgo) {}
 
   public record EmptyInput() {}
 

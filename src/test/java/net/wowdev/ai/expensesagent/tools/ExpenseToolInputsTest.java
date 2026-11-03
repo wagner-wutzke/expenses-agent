@@ -27,6 +27,16 @@ class ExpenseToolInputsTest {
   }
 
   @Test
+  void preservesTheCompleteTransactionDescriptionVerbatim() {
+    String description =
+        "Paid the electrician to replace the kitchen outlet, including materials and the call-out fee.";
+    ExpenseToolInputs.AddExpenseInput input =
+        new ExpenseToolInputs.AddExpenseInput(300.0, "Home repair", description, null, ExpenseType.DEBIT);
+
+    assertEquals(description, input.description());
+  }
+
+  @Test
   void constructsCategoryEmptyAndSalaryInputs() {
     assertEquals("Rent", new ExpenseToolInputs.CategoryInput("Rent").category());
     assertEquals(new ExpenseToolInputs.EmptyInput(), new ExpenseToolInputs.EmptyInput());

@@ -13,12 +13,19 @@ public class GetTotalSpendingTool extends AbstractExpenseTool {
     super(expenseRepository, configurationRepository);
   }
 
-  @Tool(description = "Calculates the total DEBIT spending for the current calendar month.")
-  public String getTotalSpendingTool(ExpenseToolInputs.EmptyInput input) {
-    DateRange range = currentMonth();
+  @Tool(description = "Calculates total DEBIT spending for a requested calendar month. Interpret last month as monthsAgo = 1, 2 months ago as 2, etc. Use 0 if no month is mentioned.")
+  public String getTotalSpendingTool(ExpenseToolInputs.PeriodInput input) {
+    DateRange range = month(input.monthsAgo());
     Double total = expenseRepository.getTotalSpending(range.startDate(), range.endDate());
-    String result = String.format("Total spending this month: $%.2f", total);
+    String result =
+        String.format(
+            "Total spending for %s: $%.2f",
+            calendarMonthLabel(range), total == null ? 0.0 : total);
     ChatTrace.record("getTotalSpendingTool", input.toString());
     return result;
+  }
+
+  public String getTotalSpendingTool(ExpenseToolInputs.EmptyInput input) {
+    return getTotalSpendingTool(new ExpenseToolInputs.PeriodInput(0));
   }
 }
