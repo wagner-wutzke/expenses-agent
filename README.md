@@ -1,34 +1,69 @@
 # Pennywise Expenses Agent
 
-Pennywise is a conversational finance application built with Spring Boot and Spring AI. A user can ask the agent to record transactions, review current or previous months, compare monthly results, summarize income and available funds, or search the web for product prices. The browser interface also shows the prompt, tool activity summary, model response, and token usage for the latest chat turn.
+Pennywise is a conversational finance application built with Spring Boot and Spring AI. A user can ask the agent to
+record transactions, review current or previous months, compare monthly results, summarize income and available funds,
+or search the web for product prices. The browser interface also shows the prompt, tool activity summary, model
+response, and token usage for the latest chat turn.
 
-> **Learning project:** This application was created for self-learning and experimental purposes. It is not production-ready accounting software or financial advice. Review the technical gaps below before using it with sensitive or important financial data.
+> **Learning project:** This application was created for self-learning and experimental purposes. It is not
+> production-ready accounting software or financial advice. Review the technical gaps below before using it with sensitive
+> or important financial data.
+
+## Introduction
+
+**MCP tools** act like a universal adapter for your AI, giving agents a standardized, plug-and-play way to safely hook into
+your local files, databases, and APIs without you having to write custom wrappers for every single task. Instead of
+hardcoding everything, the agent dynamically looks at the MCP server, sees what it can do, and grabs the exact tool it
+needs to get the job done on the fly.
+
+On the flip side, **agent tools** are the actual hands and eyes of an AI, representing any external function, script, or API
+that lets a LLM move past just typing text and start taking real-world actions.
+
+For experimental matters I was willing to play with Spring AI Tools and MCP features. This is the result. Pennywise: an
+agent that can handle expenses data on a database via Tools and search for products on the internet using a MCP service.
+
+Important to me was having an overview on the spent tokens during the conversations. Therefore, I added a collapsible
+panel to the agent frontend, which shows the tokens spent on every chat conversation.
 
 ## Features
 
-- Record transactions as `DEBIT` (money spent) or `CREDIT` (money received). If the direction is unclear, the agent asks before saving.
-- Look up itemized `DEBIT` expenses and/or `CREDIT` income, optionally by category, for this month or previous months. If no month is specified, reports use the current calendar month.
-- Itemized transaction results include record IDs, which can be used to update a transaction or request its deletion. Deletions require explicit user confirmation for the same record ID.
-- Show monthly `DEBIT` spending totals and category breakdowns. Breakdown results include the selected month and year and count `DEBIT` entries only.
-- Compare two or more supported months side by side when the prompt names each period. The agent queries each month separately, then can align monthly totals or category breakdowns in a Markdown table or chart.
+- Record transactions as `DEBIT` (money spent) or `CREDIT` (money received). If the direction is unclear, the agent asks
+  before saving.
+- Look up itemized `DEBIT` expenses and/or `CREDIT` income, optionally by category, for this month or previous months.
+  If no month is specified, reports use the current calendar month.
+- Itemized transaction results include record IDs, which can be used to update a transaction or request its deletion.
+  Deletions require explicit user confirmation for the same record ID.
+- Show monthly `DEBIT` spending totals and category breakdowns. Breakdown results include the selected month and year
+  and count `DEBIT` entries only.
+- Compare two or more supported months side by side when the prompt names each period. The agent queries each month
+  separately, then can align monthly totals or category breakdowns in a Markdown table or chart.
 - Set a default monthly salary. The agent asks for explicit confirmation before changing an existing salary.
-- Request a monthly summary containing Total Spent, Total Credit, Monthly income, and Total available. Available is calculated as recorded credits plus configured monthly salary minus spending.
+- Request a monthly summary containing Total Spent, Total Credit, Monthly income, and Total available. Available is
+  calculated as recorded credits plus configured monthly salary minus spending.
 - Continue a conversation using an in-memory window of recent messages.
-- Use a vanilla JavaScript, HTML, and CSS frontend with Bootstrap. Markdown and Mermaid output are rendered in chat; a collapsible panel shows the prompt, tool activity summary, response, and token counts.
+- Use a vanilla JavaScript, HTML, and CSS frontend with Bootstrap. Markdown and Mermaid output are rendered in chat; a
+  collapsible panel shows the prompt, tool activity summary, response, and token counts.
 - Store expenses and configuration in a local, file-backed H2 database.
-- Search for products on the web through the MCP `search_products` tool. The agent passes the requested product and key characteristics as `q`, preserves the query's intent, and orders returned listings by ascending price. Use a requested price range to guide the search; results depend on the listings returned by the MCP server.
-
+- Search for products on the web through the MCP `search_products` tool. The agent passes the requested product and key
+  characteristics as `q`, preserves the query's intent, and orders returned listings by ascending price. Use a requested
+  price range to guide the search; results depend on the listings returned by the MCP server.
 
 ### Prompt & reasoning panel
 
-The collapsible **Prompt & reasoning** panel sits at the bottom of the chat. It stays collapsed until the user opens it, and its contents are cleared when a new prompt is sent. The panel describes the latest chat turn in four parts:
+The collapsible **Prompt & reasoning** panel sits at the bottom of the chat. It stays collapsed until the user opens it,
+and its contents are cleared when a new prompt is sent. The panel describes the latest chat turn in four parts:
 
 - **Input prompt:** the prompt sent for this turn.
-- **Reasoning summary:** an observable activity log showing which finance or MCP tools the agent called and the arguments supplied to each call. This is a concise tool-use summary, not the model's private chain-of-thought, and it does not repeat the assistant's response.
+- **Reasoning summary:** an observable activity log showing which finance or MCP tools the agent called and the
+  arguments supplied to each call. This is a concise tool-use summary, not the model's private chain-of-thought, and it
+  does not repeat the assistant's response.
 - **Response:** the assistant's answer for the latest turn, shown separately from the activity summary.
-- **Token usage:** input, output, and total token counts reported in the model response metadata. The panel indicates when the model does not return usage data.
+- **Token usage:** input, output, and total token counts reported in the model response metadata. The panel indicates
+  when the model does not return usage data.
 
-The panel also shows whether the current request is ready, working, complete, or has ended with an error. It helps users inspect the request and tool activity; it does not expose hidden model reasoning or provide a complete record of every internal model operation.
+The panel also shows whether the current request is ready, working, complete, or has ended with an error. It helps users
+inspect the request and tool activity; it does not expose hidden model reasoning or provide a complete record of every
+internal model operation.
 
 <p style="text-align:center">
     <img src="docs/images/pennywise-01.png" width="750">
@@ -56,24 +91,46 @@ flowchart LR
     Controller -->|ChatTurn JSON| Browser
 ```
 
-The browser sends a prompt to `AgentController`. The controller combines the supplied `userId` and `sessionId` into a conversation ID, then delegates to `ChatService`. The service builds a Spring AI request with the prompt, conversation memory, tool context, and the application's finance tools. The configured `ChatClient` also has MCP callbacks registered as default tools. The model can request one or more finance or MCP tools: finance tools use Spring Data repositories to read or update H2 records, while `search_products` delegates product search to the external MCP server. The service returns the prompt, an observable tool activity summary, model response, and token usage as a `ChatTurn`.
+The browser sends a prompt to `AgentController`. The controller combines the supplied `userId` and `sessionId` into a
+conversation ID, then delegates to `ChatService`. The service builds a Spring AI request with the prompt, conversation
+memory, tool context, and the application's finance tools. The configured `ChatClient` also has MCP callbacks registered
+as default tools. The model can request one or more finance or MCP tools: finance tools use Spring Data repositories to
+read or update H2 records, while `search_products` delegates product search to the external MCP server. The service
+returns the prompt, an observable tool activity summary, model response, and token usage as a `ChatTurn`.
 
-The nine application finance tools are `AddExpenseTool`, `GetExpensesByCategoryTool`, `GetTransactionsTool`, `GetTotalSpendingTool`, `GetFinancialSummaryTool`, `GetSpendingBreakdownTool`, `SetDefaultMonthlyIncomeTool`, `UpdateExpenseTool`, and `DeleteExpenseTool`. Shared repository references and month-range logic are in `AbstractExpenseTool`; tool argument records are in `ExpenseToolInputs`. The separate MCP server supplies the `search_products` callback.
+The nine application finance tools are `AddExpenseTool`, `GetExpensesByCategoryTool`, `GetTransactionsTool`,
+`GetTotalSpendingTool`, `GetFinancialSummaryTool`, `GetSpendingBreakdownTool`, `SetDefaultMonthlyIncomeTool`,
+`UpdateExpenseTool`, and `DeleteExpenseTool`. Shared repository references and month-range logic are in
+`AbstractExpenseTool`; tool argument records are in `ExpenseToolInputs`. The separate MCP server supplies the
+`search_products` callback.
 
-The Spring AI MCP client connects to `http://localhost:8081/mcp` using Streamable HTTP. The server's `search_products` tool is registered with the chat client as a tool callback. For product searches, the system prompt directs the model to pass the user's product query in the tool's `q` argument, retain its key terms, and sort the returned listings by ascending price. The product search quick action in the browser provides a prompt template for a product name, characteristics, and price range. Start a compatible MCP server that exposes `search_products` before this application so the connection can initialize; the MCP server is a separate service and is not included here.
+The Spring AI MCP client connects to `http://localhost:8081/mcp` using Streamable HTTP. The server's `search_products`
+tool is registered with the chat client as a tool callback. For product searches, the system prompt directs the model to
+pass the user's product query in the tool's `q` argument, retain its key terms, and sort the returned listings by
+ascending price. The product search quick action in the browser provides a prompt template for a product name,
+characteristics, and price range. Start a compatible MCP server that exposes `search_products` before this application
+so the connection can initialize; the MCP server is a separate service and is not included here.
 
 ### Product search MCP integration
 
-The product search feature uses a remote MCP tool rather than an application database query. The integration required these application changes:
+The product search feature uses a remote MCP tool rather than an application database query. The integration required
+these application changes:
 
-- Configure a synchronous MCP client connection named `search_products` in `application.yaml`, pointing to `http://localhost:8081/mcp` with Streamable HTTP.
-- Inject Spring AI's `ToolCallbackProvider` in `ChatConfiguration` and register its callbacks as default chat tools. The callbacks are wrapped to record MCP calls in the same observable tool activity trace as the application's own tools.
-- Add product-search instructions to `prompts/system-prompt.md`: call `search_products` for product information, send the user's query as `q`, preserve its intent and key terms, and rank results by ascending price.
-- Add a **Find product prices** quick action to the browser interface so users can start a search with a product, characteristics, and price-range prompt.
+- Configure a synchronous MCP client connection named `search_products` in `application.yaml`, pointing to
+  `http://localhost:8081/mcp` with Streamable HTTP.
+- Inject Spring AI's `ToolCallbackProvider` in `ChatConfiguration` and register its callbacks as default chat tools. The
+  callbacks are wrapped to record MCP calls in the same observable tool activity trace as the application's own tools.
+- Add product-search instructions to `prompts/system-prompt.md`: call `search_products` for product information, send
+  the user's query as `q`, preserve its intent and key terms, and rank results by ascending price.
+- Add a **Find product prices** quick action to the browser interface so users can start a search with a product,
+  characteristics, and price-range prompt.
 
-No product-search repository or database schema is needed: the external MCP server supplies the search capability. The server must expose a `search_products` tool that accepts the expected `q` argument. Product search results depend on that server's implementation and available web listings.
+No product-search repository or database schema is needed: the external MCP server supplies the search capability. The
+server must expose a `search_products` tool that accepts the expected `q` argument. Product search results depend on
+that server's implementation and available web listings.
 
 Client prompt example:
+
 ```
 Find a cordless drill with two batteries and a carrying case priced between $100 and $200.
 ```
@@ -87,92 +144,155 @@ Find a cordless drill with two batteries and a carrying case priced between $100
 Product Search MCP Server GitHub Repository:\
 => [https://github.com/wagner-wutzke/mcp-server-product-search](https://github.com/wagner-wutzke/mcp-server-product-search)
 
-
-
 ### MCP client and server
 
-The MCP client connects Pennywise to tools hosted outside the application. It makes the remote `search_products` capability available to the chat model, so product lookup follows the model's normal tool-calling flow while the actual web search runs on the MCP server.
+The MCP client connects Pennywise to tools hosted outside the application. It makes the remote `search_products`
+capability available to the chat model, so product lookup follows the model's normal tool-calling flow while the actual
+web search runs on the MCP server.
 
-The client is configured in [`src/main/resources/application.yaml`](src/main/resources/application.yaml). The `spring.ai.mcp.client` settings select a synchronous client and a Streamable HTTP connection named `search_products`, with `http://localhost:8081` as the base URL and `/mcp` as the endpoint. The Spring AI MCP client starter that provides this connection is declared in `pom.xml`.
+The client is configured in [`src/main/resources/application.yaml`](src/main/resources/application.yaml). The
+`spring.ai.mcp.client` settings select a synchronous client and a Streamable HTTP connection named `search_products`,
+with `http://localhost:8081` as the base URL and `/mcp` as the endpoint. The Spring AI MCP client starter that provides
+this connection is declared in `pom.xml`.
 
-The application embeds the MCP tools in [`ChatConfiguration`](src/main/java/net/wowdev/ai/expensesagent/chat/ChatConfiguration.java). It receives Spring AI's `ToolCallbackProvider`, wraps each callback so MCP calls are recorded in `ChatTrace`, and registers the callbacks as default tools on the shared `ChatClient`. This makes the remote callback available alongside the nine application finance tools on chat requests. Product-search behavior and the `q` argument instructions are in [`system-prompt.md`](src/main/resources/prompts/system-prompt.md).
+The application embeds the MCP tools in [
+`ChatConfiguration`](src/main/java/net/wowdev/ai/expensesagent/chat/ChatConfiguration.java). It receives Spring AI's
+`ToolCallbackProvider`, wraps each callback so MCP calls are recorded in `ChatTrace`, and registers the callbacks as
+default tools on the shared `ChatClient`. This makes the remote callback available alongside the nine application
+finance tools on chat requests. Product-search behavior and the `q` argument instructions are in [
+`system-prompt.md`](src/main/resources/prompts/system-prompt.md).
 
-The MCP server is a separate service; it is not part of this repository or started by the Spring Boot application. It must run at `http://localhost:8081/mcp` and expose a `search_products` tool that accepts `q`. Start that server before Pennywise so the client can connect. The MCP server performs the product search and returns results through the client to the model.
+The MCP server is a separate service; it is not part of this repository or started by the Spring Boot application. It
+must run at `http://localhost:8081/mcp` and expose a `search_products` tool that accepts `q`. Start that server before
+Pennywise so the client can connect. The MCP server performs the product search and returns results through the client
+to the model.
 
 ### Month-specific reports and comparisons
 
-Expense reporting tools accept a relative month offset. `0` is this calendar month, `1` is last month, `2` is two months ago, and larger values select earlier months. If the prompt does not name a period, the agent uses the current month. Transaction lookups can filter by `DEBIT`, `CREDIT`, or both, and can also filter by category. Spending totals and breakdowns include only `DEBIT` entries. Their output identifies the selected month and year.
+Expense reporting tools accept a relative month offset. `0` is this calendar month, `1` is last month, `2` is two months
+ago, and larger values select earlier months. If the prompt does not name a period, the agent uses the current month.
+Transaction lookups can filter by `DEBIT`, `CREDIT`, or both, and can also filter by category. Spending totals and
+breakdowns include only `DEBIT` entries. Their output identifies the selected month and year.
 
-For a comparison, name every period in the same prompt so the agent can make one query per period and combine the results. For example:
+For a comparison, name every period in the same prompt so the agent can make one query per period and combine the
+results. For example:
 
 - “Compare my total spending this month and last month in a side-by-side table.”
 - “Show a side-by-side category breakdown for this month and two months ago.”
 - “Compare my income and expenses from last month with this month.”
 
-The agent uses each tool result for its corresponding month, then labels and aligns the results in the response. For category comparisons, categories can be shown as rows and months as columns. The reporting interface supports relative periods; arbitrary date ranges and selecting any calendar month by its name are not currently available. A financial summary for a past month still uses the currently configured monthly salary, since salary settings are not versioned historically.
+The agent uses each tool result for its corresponding month, then labels and aligns the results in the response. For
+category comparisons, categories can be shown as rows and months as columns. The reporting interface supports relative
+periods; arbitrary date ranges and selecting any calendar month by its name are not currently available. A financial
+summary for a past month still uses the currently configured monthly salary, since salary settings are not versioned
+historically.
 
 ## Spring AI components
 
 ### `ChatClient` configuration
 
-`ChatConfiguration` creates a reusable `ChatClient`, loads the system prompt as a Spring `Resource`, and adds default advisors:
+`ChatConfiguration` creates a reusable `ChatClient`, loads the system prompt as a Spring `Resource`, and adds default
+advisors:
 
 ```java
 return ChatClient.builder(chatModel)
-    .defaultSystem(systemPrompt, StandardCharsets.UTF_8)
-    .defaultAdvisors(
+    .
+
+defaultSystem(systemPrompt, StandardCharsets.UTF_8)
+    .
+
+defaultAdvisors(
         new SimpleLoggerAdvisor(Ordered.LOWEST_PRECEDENCE),
-        MessageChatMemoryAdvisor.builder(chatMemory).build(),
-        financialGuardrailAdvisor)
-    .defaultTools(
+        MessageChatMemoryAdvisor.
+
+builder(chatMemory).
+
+build(),
+
+financialGuardrailAdvisor)
+        .
+
+defaultTools(
         ToolCallbackProvider.from(
-            Arrays.stream(mcpToolCallbackProvider.getToolCallbacks())
-                .map(ChatConfiguration::traceToolCallback)
-                .toList()))
-    .build();
+                Arrays.stream(mcpToolCallbackProvider.getToolCallbacks())
+        .
+
+map(ChatConfiguration::traceToolCallback)
+                .
+
+toList()))
+        .
+
+build();
 ```
 
-The MCP callbacks are wrapped before registration in the application so their invocations are included in the tool activity trace.
+The MCP callbacks are wrapped before registration in the application so their invocations are included in the tool
+activity trace.
 
-The `ChatModel` is supplied by Spring AI's OpenAI starter using the model and API key configured in `application.yaml` and the environment.
+The `ChatModel` is supplied by Spring AI's OpenAI starter using the model and API key configured in `application.yaml`
+and the environment.
 
 ### Chat request and tool registration
 
-`ChatService` attaches the current conversation ID to both the memory advisor and tool context. It registers the nine finance tool objects for each request. The MCP callback is registered as a `ChatClient` default tool in `ChatConfiguration`, so it is available alongside those request tools:
+`ChatService` attaches the current conversation ID to both the memory advisor and tool context. It registers the nine
+finance tool objects for each request. The MCP callback is registered as a `ChatClient` default tool in
+`ChatConfiguration`, so it is available alongside those request tools:
 
 ```java
 this.chatClient
-    .prompt()
-    .user(userPrompt)
-    .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
-    .tools(tools)
-    .toolContext(Map.of("conversationId", conversationId))
-    .call()
-    .chatResponse();
+        .prompt()
+    .
+
+user(userPrompt)
+    .
+
+advisors(a ->a.
+
+param(ChatMemory.CONVERSATION_ID, conversationId))
+        .
+
+tools(tools)
+    .
+
+toolContext(Map.of("conversationId", conversationId))
+        .
+
+call()
+    .
+
+chatResponse();
 ```
 
 ### Tool calling
 
-Each application finance tool is a separate Spring component with one `@Tool` method. Spring AI exposes the method name, description, and input record to the model. For example, `AddExpenseTool` describes when to use transaction logging and requires an explicit direction:
+Each application finance tool is a separate Spring component with one `@Tool` method. Spring AI exposes the method name,
+description, and input record to the model. For example, `AddExpenseTool` describes when to use transaction logging and
+requires an explicit direction:
 
 ```java
+
 @Tool(
-    description =
-        "Log a money transaction. Use DEBIT for spending or CREDIT for incoming money ... "
-            + "If direction is unclear, ask whether it is DEBIT or CREDIT and do not log until clarified.")
+        description =
+                "Log a money transaction. Use DEBIT for spending or CREDIT for incoming money ... "
+                        + "If direction is unclear, ask whether it is DEBIT or CREDIT and do not log until clarified.")
 public String addExpenseTool(ExpenseToolInputs.AddExpenseInput input) {
-  if (input.type() == null) {
-    return "Is this transaction a DEBIT (money spent) or a CREDIT (money received)? I haven't logged it yet.";
-  }
-  // Save the transaction with the selected type.
+    if (input.type() == null) {
+        return "Is this transaction a DEBIT (money spent) or a CREDIT (money received)? I haven't logged it yet.";
+    }
+    // Save the transaction with the selected type.
 }
 ```
 
-The other finance tools follow the same `@Tool` pattern and call the relevant repository query or configuration update. The MCP product-search tool is provided by the remote server and invoked through its registered callback; it does not use a local `@Tool` component.
+The other finance tools follow the same `@Tool` pattern and call the relevant repository query or configuration update.
+The MCP product-search tool is provided by the remote server and invoked through its registered callback; it does not
+use a local `@Tool` component.
 
 ### Advisors and conversation memory
 
-`ChatConfiguration` configures a `MessageWindowChatMemory` backed by `InMemoryChatMemoryRepository`. Its maximum number of messages is read from `agent.chat.memory.window.size` with Spring's `@Value` annotation. The default in `application.yaml` is 30; change the value to adjust how much recent conversation history is included in future requests:
+`ChatConfiguration` configures a `MessageWindowChatMemory` backed by `InMemoryChatMemoryRepository`. Its maximum number
+of messages is read from `agent.chat.memory.window.size` with Spring's `@Value` annotation. The default in
+`application.yaml` is 30; change the value to adjust how much recent conversation history is included in future
+requests:
 
 ```yaml
 agent:
@@ -182,14 +302,26 @@ agent:
         size: 30
 ```
 
-`MessageChatMemoryAdvisor` adds the retained conversation history to requests. The memory is in-process and volatile, so the configured window is not persisted across application restarts. `SimpleLoggerAdvisor` logs the Spring AI exchange. `FinancialGuardrailAdvisor` implements `CallAdvisor` and checks user text before forwarding the request:
+`MessageChatMemoryAdvisor` adds the retained conversation history to requests. The memory is in-process and volatile, so
+the configured window is not persisted across application restarts. `SimpleLoggerAdvisor` logs the Spring AI exchange.
+`FinancialGuardrailAdvisor` implements `CallAdvisor` and checks user text before forwarding the request:
 
 ```java
-if (NEGATIVE_MONEY_PATTERN.matcher(userText).find()
-    || userText.toLowerCase().contains("negative")) {
-  throw new IllegalArgumentException("Guardrail Blocked Action: ...");
+if(NEGATIVE_MONEY_PATTERN.matcher(userText).
+
+find()
+    ||userText.
+
+toLowerCase().
+
+contains("negative")){
+        throw new
+
+IllegalArgumentException("Guardrail Blocked Action: ...");
 }
-return callAdvisorChain.nextCall(chatClientRequest);
+        return callAdvisorChain.
+
+nextCall(chatClientRequest);
 ```
 
 ### Model usage metadata
@@ -199,19 +331,25 @@ The service reads token counts from the model response metadata and includes the
 ```java
 Usage usage = chatResponse.getMetadata().getUsage();
 TokenUsage tokenUsage = new TokenUsage(
-    usage.getPromptTokens(), usage.getCompletionTokens(), usage.getTotalTokens());
+        usage.getPromptTokens(), usage.getCompletionTokens(), usage.getTotalTokens());
 ```
 
 Usage is reported when the configured model returns it; otherwise the API marks the counts unavailable.
 
 ## What happens when a user sends a prompt
 
-1. A user types a message or selects a suggested prompt. The browser posts `userPrompt`, `userId`, and `sessionId` to `/api/agent/chat`.
+1. A user types a message or selects a suggested prompt. The browser posts `userPrompt`, `userId`, and `sessionId` to
+   `/api/agent/chat`.
 2. `AgentController` builds a conversation ID from the user and session IDs and invokes `ChatService.askAgent`.
-3. The Spring AI `ChatClient` assembles the system prompt, conversation memory, guardrail/logging advisors, the current prompt, the nine finance tools, and its registered MCP callback.
-4. The model either responds directly or requests a tool. Spring AI dispatches finance tool requests to annotated Java methods and product-search requests through the MCP callback to the external server. Tool results are returned to the model so it can prepare the user-facing response.
-5. The service packages the response with the prompt, tool activity summary, and token usage into a `ChatTurn` JSON response.
-6. The browser renders the answer as sanitized Markdown and Mermaid where applicable. It updates the collapsible prompt/activity panel and token counters.
+3. The Spring AI `ChatClient` assembles the system prompt, conversation memory, guardrail/logging advisors, the current
+   prompt, the nine finance tools, and its registered MCP callback.
+4. The model either responds directly or requests a tool. Spring AI dispatches finance tool requests to annotated Java
+   methods and product-search requests through the MCP callback to the external server. Tool results are returned to the
+   model so it can prepare the user-facing response.
+5. The service packages the response with the prompt, tool activity summary, and token usage into a `ChatTurn` JSON
+   response.
+6. The browser renders the answer as sanitized Markdown and Mermaid where applicable. It updates the collapsible
+   prompt/activity panel and token counters.
 
 ## Download and run locally
 
@@ -236,7 +374,9 @@ Create a `.env` file in the project root with your API key:
 OPENAI_API_KEY=your-openai-api-key
 ```
 
-`.env` is ignored by Git. You can also provide `OPENAI_API_KEY` through your shell environment. The default model is set in `src/main/resources/application.yaml`; change `spring.ai.openai.chat.model` if you want to use another model available to your account.
+`.env` is ignored by Git. You can also provide `OPENAI_API_KEY` through your shell environment. The default model is set
+in `src/main/resources/application.yaml`; change `spring.ai.openai.chat.model` if you want to use another model
+available to your account.
 
 Create the local database directory before the first start:
 
@@ -260,7 +400,8 @@ On Windows:
 mvnw.cmd spring-boot:run
 ```
 
-Open <http://localhost:8181>. H2 stores its file database under `./data/expenses-agent`; the `data` directory should exist before the first run, as shown above.
+Open <http://localhost:8181>. H2 stores its file database under `./data/expenses-agent`; the `data` directory should
+exist before the first run, as shown above.
 
 You can call the chat API directly:
 
@@ -273,19 +414,28 @@ curl -X POST \
   --data-urlencode 'sessionId=demo'
 ```
 
-The API accepts `userPrompt` as a required query parameter. `userId` and `sessionId` default to `user-id` and `session-id` if omitted. The H2 console is available at <http://localhost:8181/h2-console> by default. Use JDBC URL `jdbc:h2:file:./data/expenses-agent`, username `sa`, and a blank password.
+The API accepts `userPrompt` as a required query parameter. `userId` and `sessionId` default to `user-id` and
+`session-id` if omitted. The H2 console is available at <http://localhost:8181/h2-console> by default. Use JDBC URL
+`jdbc:h2:file:./data/expenses-agent`, username `sa`, and a blank password.
 
 ### Load sample transaction data
 
-The optional [`scripts/seed-sample-transactions.sql`](scripts/seed-sample-transactions.sql) script inserts 140 sample transactions: 30 DEBIT expenses and 5 CREDIT incomes for each of the current month and the three previous months. The descriptions and categories vary by month so the data is useful for trying category searches and month-to-month comparisons.
+The optional [`scripts/seed-sample-transactions.sql`](scripts/seed-sample-transactions.sql) script inserts 140 sample
+transactions: 30 DEBIT expenses and 5 CREDIT incomes for each of the current month and the three previous months. The
+descriptions and categories vary by month so the data is useful for trying category searches and month-to-month
+comparisons.
 
-Start the application once so Hibernate can create the database tables, then open the H2 console at <http://localhost:8181/h2-console>. Connect with the JDBC URL, username, and password shown above and execute:
+Start the application once so Hibernate can create the database tables, then open the H2 console
+at <http://localhost:8181/h2-console>. Connect with the JDBC URL, username, and password shown above and execute:
 
 ```sql
-RUNSCRIPT FROM 'scripts/seed-sample-transactions.sql';
+RUNSCRIPT
+FROM 'scripts/seed-sample-transactions.sql';
 ```
 
-Run this only against a local development database: the script begins by deleting **all existing rows from `expenses`** before inserting the sample data. It does not delete configuration entries. You can run it again to reset the expense data to a fresh sample set.
+Run this only against a local development database: the script begins by deleting **all existing rows from `expenses`**
+before inserting the sample data. It does not delete configuration entries. You can run it again to reset the expense
+data to a fresh sample set.
 
 Run the test suite and JaCoCo coverage gate with:
 
@@ -297,13 +447,31 @@ The Maven verify lifecycle checks a project-wide line coverage minimum of 95%.
 
 ## Enhancement points and technical gaps
 
-- **No authentication or authorization:** `userId` and `sessionId` are client-supplied identifiers, not verified identities. Expense/configuration records are stored in one shared database and are not isolated per user. Do not expose this app publicly with real financial data.
-- **Prototype guardrails:** The advisor uses simple text matching for negative amounts and a few database-related phrases. It is not a complete security boundary and can both miss harmful instructions and reject harmless text. Tool validation and API-level controls should be added.
-- **In-memory chat state:** Conversation memory and pending salary-change confirmations are process-local. They disappear on restart and are not shared across multiple application instances.
-- **Database evolution:** The app uses H2 with `spring.jpa.hibernate.ddl-auto=update`. A versioned migration system such as Flyway or Liquibase would make schema changes and existing-data upgrades more predictable. H2 is suitable for local experimentation, but a production deployment should use an appropriately managed database.
-- **Money representation:** Amounts use `Double`, which can introduce rounding errors. Financial amounts should generally use `BigDecimal` with explicit currency and rounding rules.
-- **Summary semantics:** “Total available” is a simple monthly calculation of credits plus configured salary minus debits. It is not a bank balance: there is no opening balance, account separation, salary-period accounting, or reconciliation. Logging salary as a CREDIT as well as configuring it can count the income twice.
-- **Limited reporting period:** Reports support the current month and prior months selected by relative offset. Arbitrary date ranges, selecting any month by a calendar name, a timezone policy, recurring income, and a dedicated comparison endpoint are not implemented. Side-by-side comparisons are composed by the LLM from separate monthly tool results.
-- **Thin validation and API design:** Request validation, rate limiting, request-size controls, and structured error responses need work. The chat endpoint uses query parameters for the prompt; a JSON request body would be a better fit for a larger API.
-- **Operational hardening:** The H2 console is enabled by default, logging may include model interactions, and there is no production observability, backup strategy, or deployment configuration. Review these defaults before any shared deployment.
-- **External frontend assets:** Bootstrap, icons, Mermaid, Markdown rendering, fonts, and sanitization libraries load from CDNs. A no-network deployment would need local or bundled assets.
+- **No authentication or authorization:** `userId` and `sessionId` are client-supplied identifiers, not verified
+  identities. Expense/configuration records are stored in one shared database and are not isolated per user. Do not
+  expose this app publicly with real financial data.
+- **Prototype guardrails:** The advisor uses simple text matching for negative amounts and a few database-related
+  phrases. It is not a complete security boundary and can both miss harmful instructions and reject harmless text. Tool
+  validation and API-level controls should be added.
+- **In-memory chat state:** Conversation memory and pending salary-change confirmations are process-local. They
+  disappear on restart and are not shared across multiple application instances.
+- **Database evolution:** The app uses H2 with `spring.jpa.hibernate.ddl-auto=update`. A versioned migration system such
+  as Flyway or Liquibase would make schema changes and existing-data upgrades more predictable. H2 is suitable for local
+  experimentation, but a production deployment should use an appropriately managed database.
+- **Money representation:** Amounts use `Double`, which can introduce rounding errors. Financial amounts should
+  generally use `BigDecimal` with explicit currency and rounding rules.
+- **Summary semantics:** “Total available” is a simple monthly calculation of credits plus configured salary minus
+  debits. It is not a bank balance: there is no opening balance, account separation, salary-period accounting, or
+  reconciliation. Logging salary as a CREDIT as well as configuring it can count the income twice.
+- **Limited reporting period:** Reports support the current month and prior months selected by relative offset.
+  Arbitrary date ranges, selecting any month by a calendar name, a timezone policy, recurring income, and a dedicated
+  comparison endpoint are not implemented. Side-by-side comparisons are composed by the LLM from separate monthly tool
+  results.
+- **Thin validation and API design:** Request validation, rate limiting, request-size controls, and structured error
+  responses need work. The chat endpoint uses query parameters for the prompt; a JSON request body would be a better fit
+  for a larger API.
+- **Operational hardening:** The H2 console is enabled by default, logging may include model interactions, and there is
+  no production observability, backup strategy, or deployment configuration. Review these defaults before any shared
+  deployment.
+- **External frontend assets:** Bootstrap, icons, Mermaid, Markdown rendering, fonts, and sanitization libraries load
+  from CDNs. A no-network deployment would need local or bundled assets.
