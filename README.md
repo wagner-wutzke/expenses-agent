@@ -84,6 +84,16 @@ Find a cordless drill with two batteries and a carrying case priced between $100
     <img src="docs/images/pennywise-05.png" width="750">
 </p>
 
+### MCP client and server
+
+The MCP client connects Pennywise to tools hosted outside the application. It makes the remote `search_products` capability available to the chat model, so product lookup follows the model's normal tool-calling flow while the actual web search runs on the MCP server.
+
+The client is configured in [`src/main/resources/application.yaml`](src/main/resources/application.yaml). The `spring.ai.mcp.client` settings select a synchronous client and a Streamable HTTP connection named `search_products`, with `http://localhost:8081` as the base URL and `/mcp` as the endpoint. The Spring AI MCP client starter that provides this connection is declared in `pom.xml`.
+
+The application embeds the MCP tools in [`ChatConfiguration`](src/main/java/net/wowdev/ai/expensesagent/chat/ChatConfiguration.java). It receives Spring AI's `ToolCallbackProvider`, wraps each callback so MCP calls are recorded in `ChatTrace`, and registers the callbacks as default tools on the shared `ChatClient`. This makes the remote callback available alongside the nine application finance tools on chat requests. Product-search behavior and the `q` argument instructions are in [`system-prompt.md`](src/main/resources/prompts/system-prompt.md).
+
+The MCP server is a separate service; it is not part of this repository or started by the Spring Boot application. It must run at `http://localhost:8081/mcp` and expose a `search_products` tool that accepts `q`. Start that server before Pennywise so the client can connect. The MCP server performs the product search and returns results through the client to the model.
+
 ### Month-specific reports and comparisons
 
 Expense reporting tools accept a relative month offset. `0` is this calendar month, `1` is last month, `2` is two months ago, and larger values select earlier months. If the prompt does not name a period, the agent uses the current month. Transaction lookups can filter by `DEBIT`, `CREDIT`, or both, and can also filter by category. Spending totals and breakdowns include only `DEBIT` entries. Their output identifies the selected month and year.
