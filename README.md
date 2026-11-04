@@ -79,10 +79,15 @@ Find a cordless drill with two batteries and a carrying case priced between $100
 ```
 
 <p style="text-align:center">
-    <img src="docs/images/pennywise-04.png" width="750">
+    <img src="docs/images/pennywise-04.png" width="750"/>
     <br/><br/>
-    <img src="docs/images/pennywise-05.png" width="750">
+    <img src="docs/images/pennywise-05.png" width="750"/>
 </p>
+
+Product Search MCP Server GitHub Repository:\
+=> [https://github.com/wagner-wutzke/mcp-server-product-search](https://github.com/wagner-wutzke/mcp-server-product-search)
+
+
 
 ### MCP client and server
 
