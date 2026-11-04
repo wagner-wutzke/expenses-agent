@@ -19,9 +19,13 @@ public final class ChatTrace implements AutoCloseable {
   }
 
   public static void record(String tool, String input) {
+    record("function", tool, input);
+  }
+
+  public static void record(String type, String tool, String input) {
     List<Event> events = ACTIVE.get();
     if (events != null) {
-      events.add(new Event(tool, input, List.of()));
+      events.add(new Event(type, tool, input, List.of()));
     }
   }
 
@@ -40,7 +44,7 @@ public final class ChatTrace implements AutoCloseable {
                           expense.getAmount(),
                           expense.getType()))
               .toList();
-      events.add(new Event(tool, input, transactions));
+      events.add(new Event("function", tool, input, transactions));
     }
   }
 
@@ -60,7 +64,10 @@ public final class ChatTrace implements AutoCloseable {
       if (!summary.isEmpty()) {
         summary.append("\n\n");
       }
-      summary.append("Action: ").append(event.tool()).append("\nInput: ").append(event.input());
+      summary
+          .append("Type: ").append(event.type())
+          .append("\nAction: ").append(event.tool())
+          .append("\nInput: ").append(event.input());
     }
     return summary.toString();
   }
@@ -70,5 +77,5 @@ public final class ChatTrace implements AutoCloseable {
     ACTIVE.remove();
   }
 
-  private record Event(String tool, String input, List<TransactionDetails> transactions) {}
+  private record Event(String type, String tool, String input, List<TransactionDetails> transactions) {}
 }

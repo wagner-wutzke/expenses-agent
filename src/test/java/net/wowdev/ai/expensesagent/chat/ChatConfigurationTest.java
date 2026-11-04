@@ -9,8 +9,13 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ToolContext;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.test.util.ReflectionTestUtils;
+import static org.mockito.Mockito.*;
 
 class ChatConfigurationTest {
   private ChatConfiguration configuration(String prompt) {
@@ -21,7 +26,12 @@ class ChatConfigurationTest {
   }
 
   @Test void buildsClientWhenPromptIsNonblank() {
-    ChatClient client = configuration("You are helpful").chatClient(new StubChatModel(), new FinancialGuardrailAdvisor());
+    ChatClient client =
+        configuration("You are helpful")
+            .chatClient(
+                new StubChatModel(),
+                new FinancialGuardrailAdvisor(),
+                ToolCallbackProvider.from());
     assertNotNull(client);
   }
 
@@ -41,8 +51,21 @@ class ChatConfigurationTest {
 
   @Test void rejectsMissingAndBlankPrompt() {
     ChatConfiguration missing = new ChatConfiguration();
-    assertThrows(IllegalStateException.class, () -> missing.chatClient(new StubChatModel(), new FinancialGuardrailAdvisor()));
-    assertThrows(IllegalStateException.class, () -> configuration(" \n ").chatClient(new StubChatModel(), new FinancialGuardrailAdvisor()));
+    assertThrows(
+        IllegalStateException.class,
+        () ->
+            missing.chatClient(
+                new StubChatModel(),
+                new FinancialGuardrailAdvisor(),
+                ToolCallbackProvider.from()));
+    assertThrows(
+        IllegalStateException.class,
+        () ->
+            configuration(" \n ")
+                .chatClient(
+                    new StubChatModel(),
+                    new FinancialGuardrailAdvisor(),
+                    ToolCallbackProvider.from()));
   }
 
   @Test void wrapsPromptReadFailure() {
@@ -52,9 +75,40 @@ class ChatConfigurationTest {
       @Override public String getDescription() { return "broken prompt"; }
     });
     IllegalStateException exception = assertThrows(IllegalStateException.class,
-        () -> configuration.chatClient(new StubChatModel(), new FinancialGuardrailAdvisor()));
+        () ->
+            configuration.chatClient(
+                new StubChatModel(),
+                new FinancialGuardrailAdvisor(),
+                ToolCallbackProvider.from()));
     assertTrue(exception.getMessage().contains("broken prompt"));
     assertInstanceOf(IOException.class, exception.getCause());
+  }
+
+  @Test
+  void tracedMcpCallbackPreservesMetadataAndRecordsBothInvocationForms() {
+    ToolCallback delegate = mock(ToolCallback.class);
+    ToolDefinition definition = mock(ToolDefinition.class);
+    ToolContext context = mock(ToolContext.class);
+    when(delegate.getToolDefinition()).thenReturn(definition);
+    when(definition.name()).thenReturn("search_products");
+    when(delegate.call("q=drill")).thenReturn("products");
+    when(delegate.call("q=saw", context)).thenReturn("saws");
+
+    ToolCallback traced = ReflectionTestUtils.invokeMethod(
+        ChatConfiguration.class, "traceToolCallback", delegate);
+    assertSame(definition, traced.getToolDefinition());
+    assertSame(delegate.getToolMetadata(), traced.getToolMetadata());
+
+    try (var trace = net.wowdev.ai.expensesagent.service.ChatTrace.start()) {
+      assertEquals("products", traced.call("q=drill"));
+      assertEquals("saws", traced.call("q=saw", context));
+      assertEquals(
+          "Type: function\nAction: search_products\nInput: q=drill\n\n"
+              + "Type: function\nAction: search_products\nInput: q=saw",
+          trace.reasoningSummary());
+    }
+    verify(delegate).call("q=drill");
+    verify(delegate).call("q=saw", context);
   }
 
   private static class StubChatModel implements ChatModel {

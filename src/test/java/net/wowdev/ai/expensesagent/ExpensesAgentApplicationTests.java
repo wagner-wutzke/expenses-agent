@@ -2,14 +2,23 @@ package net.wowdev.ai.expensesagent;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.ArrayList;
 
-@SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:expenses-agent-context-test;DB_CLOSE_DELAY=-1")
+@SpringBootTest(
+    properties = {
+      "spring.datasource.url=jdbc:h2:mem:expenses-agent-context-test;DB_CLOSE_DELAY=-1",
+      "spring.ai.mcp.client.enabled=false"
+    })
+@Import(ExpensesAgentApplicationTests.TestMcpConfiguration.class)
 class ExpensesAgentApplicationTests {
 
   @Autowired ChatMemory chatMemory;
@@ -28,5 +37,13 @@ class ExpensesAgentApplicationTests {
 
     assertEquals(30, chatMemory.get("default-window-size-test").size());
     assertEquals("message-1", chatMemory.get("default-window-size-test").getFirst().getText());
+  }
+
+  @TestConfiguration(proxyBeanMethods = false)
+  static class TestMcpConfiguration {
+    @Bean
+    ToolCallbackProvider mcpToolCallbackProvider() {
+      return ToolCallbackProvider.from();
+    }
   }
 }

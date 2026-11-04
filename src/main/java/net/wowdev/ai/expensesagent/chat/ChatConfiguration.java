@@ -2,6 +2,7 @@ package net.wowdev.ai.expensesagent.chat;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -9,11 +10,15 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ToolContext;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.Resource;
+import net.wowdev.ai.expensesagent.service.ChatTrace;
 
 @Configuration
 public class ChatConfiguration {
@@ -34,7 +39,9 @@ public class ChatConfiguration {
 
   @Bean
   public ChatClient chatClient(
-      ChatModel chatModel, FinancialGuardrailAdvisor financialGuardrailAdvisor) {
+      ChatModel chatModel,
+      FinancialGuardrailAdvisor financialGuardrailAdvisor,
+      ToolCallbackProvider mcpToolCallbackProvider) {
 
     validateSystemPrompt();
 
@@ -44,7 +51,38 @@ public class ChatConfiguration {
             new SimpleLoggerAdvisor(Ordered.LOWEST_PRECEDENCE),
             MessageChatMemoryAdvisor.builder(chatMemory()).build(),
             financialGuardrailAdvisor)
+        .defaultTools(
+            ToolCallbackProvider.from(
+                Arrays.stream(mcpToolCallbackProvider.getToolCallbacks())
+                    .map(ChatConfiguration::traceToolCallback)
+                    .toList()))
         .build();
+  }
+
+  private static ToolCallback traceToolCallback(ToolCallback delegate) {
+    return new ToolCallback() {
+      @Override
+      public org.springframework.ai.tool.definition.ToolDefinition getToolDefinition() {
+        return delegate.getToolDefinition();
+      }
+
+      @Override
+      public org.springframework.ai.tool.metadata.ToolMetadata getToolMetadata() {
+        return delegate.getToolMetadata();
+      }
+
+      @Override
+      public String call(String toolInput) {
+        ChatTrace.record("function", delegate.getToolDefinition().name(), toolInput);
+        return delegate.call(toolInput);
+      }
+
+      @Override
+      public String call(String toolInput, ToolContext toolContext) {
+        ChatTrace.record("function", delegate.getToolDefinition().name(), toolInput);
+        return delegate.call(toolInput, toolContext);
+      }
+    };
   }
 
   private void validateSystemPrompt() {
