@@ -1,6 +1,7 @@
 package net.wowdev.ai.expensesagent.service;
 
 import java.util.Map;
+
 import net.wowdev.ai.expensesagent.tools.AddExpenseTool;
 import net.wowdev.ai.expensesagent.tools.DeleteExpenseTool;
 import net.wowdev.ai.expensesagent.tools.GetExpensesByCategoryTool;
@@ -10,6 +11,8 @@ import net.wowdev.ai.expensesagent.tools.GetTotalSpendingTool;
 import net.wowdev.ai.expensesagent.tools.GetTransactionsTool;
 import net.wowdev.ai.expensesagent.tools.SetDefaultMonthlyIncomeTool;
 import net.wowdev.ai.expensesagent.tools.UpdateExpenseTool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -18,6 +21,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ChatService {
+
+  private static final Logger log = LoggerFactory.getLogger(ChatService.class);
 
   private final ChatClient chatClient;
 
@@ -73,6 +78,7 @@ public class ChatService {
               ? TokenUsage.unavailable()
               : new TokenUsage(
                   usage.getPromptTokens(), usage.getCompletionTokens(), usage.getTotalTokens());
+
       return new ChatTurn(
           userPrompt,
           trace.reasoningSummary(),

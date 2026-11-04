@@ -1,6 +1,6 @@
 # Pennywise Expenses Agent
 
-Pennywise is a small conversational finance application built with Spring Boot and Spring AI. A user can ask the agent to record transactions, review current or previous months, compare monthly results, and summarize income and available funds. The browser interface also shows the prompt, tool activity summary, model response, and token usage for the latest chat turn.
+Pennywise is a conversational finance application built with Spring Boot and Spring AI. A user can ask the agent to record transactions, review current or previous months, compare monthly results, summarize income and available funds, or search the web for product prices. The browser interface also shows the prompt, tool activity summary, model response, and token usage for the latest chat turn.
 
 > **Learning project:** This application was created for self-learning and experimental purposes. It is not production-ready accounting software or financial advice. Review the technical gaps below before using it with sensitive or important financial data.
 
@@ -16,13 +16,15 @@ Pennywise is a small conversational finance application built with Spring Boot a
 - Continue a conversation using an in-memory window of recent messages.
 - Use a vanilla JavaScript, HTML, and CSS frontend with Bootstrap. Markdown and Mermaid output are rendered in chat; a collapsible panel shows the prompt, tool activity summary, response, and token counts.
 - Store expenses and configuration in a local, file-backed H2 database.
+- Search for products on the web through the MCP `search_products` tool. The agent passes the requested product and key characteristics as `q`, preserves the query's intent, and orders returned listings by ascending price. Use a requested price range to guide the search; results depend on the listings returned by the MCP server.
+
 
 ### Prompt & reasoning panel
 
 The collapsible **Prompt & reasoning** panel sits at the bottom of the chat. It stays collapsed until the user opens it, and its contents are cleared when a new prompt is sent. The panel describes the latest chat turn in four parts:
 
 - **Input prompt:** the prompt sent for this turn.
-- **Reasoning summary:** an observable activity log showing which finance tools the agent called and the arguments supplied to each call. This is a concise tool-use summary, not the model's private chain-of-thought, and it does not repeat the assistant's response.
+- **Reasoning summary:** an observable activity log showing which finance or MCP tools the agent called and the arguments supplied to each call. This is a concise tool-use summary, not the model's private chain-of-thought, and it does not repeat the assistant's response.
 - **Response:** the assistant's answer for the latest turn, shown separately from the activity summary.
 - **Token usage:** input, output, and total token counts reported in the model response metadata. The panel indicates when the model does not return usage data.
 
@@ -44,7 +46,9 @@ flowchart LR
     Client --> Advisors[Memory, logging, guardrail advisors]
     Client --> Model[OpenAI ChatModel]
     Model -->|Tool call request| Client
-    Client --> Tools[Nine one-tool components]
+    Client --> Tools[Nine finance tool components]
+    Client --> MCP[MCP client]
+    MCP -->|search_products with q from user prompt| MCPServer[MCP server at localhost:8081/mcp]
     Tools --> Repositories[Spring Data repositories]
     Repositories --> Database[(H2 database)]
     Client -->|Chat response and usage| Service
@@ -52,9 +56,33 @@ flowchart LR
     Controller -->|ChatTurn JSON| Browser
 ```
 
-The browser sends a prompt to `AgentController`. The controller combines the supplied `userId` and `sessionId` into a conversation ID, then delegates to `ChatService`. The service builds a Spring AI request with the prompt, conversation memory, tool context, and the application's tool components. Spring AI calls the configured model, which can request one or more tools. The tools use Spring Data repositories to read or update H2 records. The service returns the prompt, an observable tool activity summary, model response, and token usage as a `ChatTurn`.
+The browser sends a prompt to `AgentController`. The controller combines the supplied `userId` and `sessionId` into a conversation ID, then delegates to `ChatService`. The service builds a Spring AI request with the prompt, conversation memory, tool context, and the application's finance tools. The configured `ChatClient` also has MCP callbacks registered as default tools. The model can request one or more finance or MCP tools: finance tools use Spring Data repositories to read or update H2 records, while `search_products` delegates product search to the external MCP server. The service returns the prompt, an observable tool activity summary, model response, and token usage as a `ChatTurn`.
 
-The available tools are `AddExpenseTool`, `GetExpensesByCategoryTool`, `GetTransactionsTool`, `GetTotalSpendingTool`, `GetFinancialSummaryTool`, `GetSpendingBreakdownTool`, `SetDefaultMonthlyIncomeTool`, `UpdateExpenseTool`, and `DeleteExpenseTool`. Shared repository references and month-range logic are in `AbstractExpenseTool`; tool argument records are in `ExpenseToolInputs`.
+The nine application finance tools are `AddExpenseTool`, `GetExpensesByCategoryTool`, `GetTransactionsTool`, `GetTotalSpendingTool`, `GetFinancialSummaryTool`, `GetSpendingBreakdownTool`, `SetDefaultMonthlyIncomeTool`, `UpdateExpenseTool`, and `DeleteExpenseTool`. Shared repository references and month-range logic are in `AbstractExpenseTool`; tool argument records are in `ExpenseToolInputs`. The separate MCP server supplies the `search_products` callback.
+
+The Spring AI MCP client connects to `http://localhost:8081/mcp` using Streamable HTTP. The server's `search_products` tool is registered with the chat client as a tool callback. For product searches, the system prompt directs the model to pass the user's product query in the tool's `q` argument, retain its key terms, and sort the returned listings by ascending price. The product search quick action in the browser provides a prompt template for a product name, characteristics, and price range. Start a compatible MCP server that exposes `search_products` before this application so the connection can initialize; the MCP server is a separate service and is not included here.
+
+### Product search MCP integration
+
+The product search feature uses a remote MCP tool rather than an application database query. The integration required these application changes:
+
+- Configure a synchronous MCP client connection named `search_products` in `application.yaml`, pointing to `http://localhost:8081/mcp` with Streamable HTTP.
+- Inject Spring AI's `ToolCallbackProvider` in `ChatConfiguration` and register its callbacks as default chat tools. The callbacks are wrapped to record MCP calls in the same observable tool activity trace as the application's own tools.
+- Add product-search instructions to `prompts/system-prompt.md`: call `search_products` for product information, send the user's query as `q`, preserve its intent and key terms, and rank results by ascending price.
+- Add a **Find product prices** quick action to the browser interface so users can start a search with a product, characteristics, and price-range prompt.
+
+No product-search repository or database schema is needed: the external MCP server supplies the search capability. The server must expose a `search_products` tool that accepts the expected `q` argument. Product search results depend on that server's implementation and available web listings.
+
+Client prompt example:
+```
+Find a cordless drill with two batteries and a carrying case priced between $100 and $200.
+```
+
+<p style="text-align:center">
+    <img src="docs/images/pennywise-04.png" width="750">
+    <br/><br/>
+    <img src="docs/images/pennywise-05.png" width="750">
+</p>
 
 ### Month-specific reports and comparisons
 
@@ -81,14 +109,21 @@ return ChatClient.builder(chatModel)
         new SimpleLoggerAdvisor(Ordered.LOWEST_PRECEDENCE),
         MessageChatMemoryAdvisor.builder(chatMemory).build(),
         financialGuardrailAdvisor)
+    .defaultTools(
+        ToolCallbackProvider.from(
+            Arrays.stream(mcpToolCallbackProvider.getToolCallbacks())
+                .map(ChatConfiguration::traceToolCallback)
+                .toList()))
     .build();
 ```
+
+The MCP callbacks are wrapped before registration in the application so their invocations are included in the tool activity trace.
 
 The `ChatModel` is supplied by Spring AI's OpenAI starter using the model and API key configured in `application.yaml` and the environment.
 
 ### Chat request and tool registration
 
-`ChatService` attaches the current conversation ID to both the memory advisor and tool context. It registers the nine tool objects for the request:
+`ChatService` attaches the current conversation ID to both the memory advisor and tool context. It registers the nine finance tool objects for each request. The MCP callback is registered as a `ChatClient` default tool in `ChatConfiguration`, so it is available alongside those request tools:
 
 ```java
 this.chatClient
@@ -103,7 +138,7 @@ this.chatClient
 
 ### Tool calling
 
-Each tool is a separate Spring component with one `@Tool` method. Spring AI exposes the method name, description, and input record to the model. For example, `AddExpenseTool` describes when to use transaction logging and requires an explicit direction:
+Each application finance tool is a separate Spring component with one `@Tool` method. Spring AI exposes the method name, description, and input record to the model. For example, `AddExpenseTool` describes when to use transaction logging and requires an explicit direction:
 
 ```java
 @Tool(
@@ -118,7 +153,7 @@ public String addExpenseTool(ExpenseToolInputs.AddExpenseInput input) {
 }
 ```
 
-The other tools follow the same `@Tool` pattern and call the relevant repository query or configuration update.
+The other finance tools follow the same `@Tool` pattern and call the relevant repository query or configuration update. The MCP product-search tool is provided by the remote server and invoked through its registered callback; it does not use a local `@Tool` component.
 
 ### Advisors and conversation memory
 
@@ -158,8 +193,8 @@ Usage is reported when the configured model returns it; otherwise the API marks 
 
 1. A user types a message or selects a suggested prompt. The browser posts `userPrompt`, `userId`, and `sessionId` to `/api/agent/chat`.
 2. `AgentController` builds a conversation ID from the user and session IDs and invokes `ChatService.askAgent`.
-3. The Spring AI `ChatClient` assembles the system prompt, conversation memory, guardrail/logging advisors, the current prompt, and all nine tools.
-4. The model either responds directly or requests a tool. Spring AI dispatches a tool request to its annotated Java method. Tool results are returned to the model so it can prepare the user-facing response.
+3. The Spring AI `ChatClient` assembles the system prompt, conversation memory, guardrail/logging advisors, the current prompt, the nine finance tools, and its registered MCP callback.
+4. The model either responds directly or requests a tool. Spring AI dispatches finance tool requests to annotated Java methods and product-search requests through the MCP callback to the external server. Tool results are returned to the model so it can prepare the user-facing response.
 5. The service packages the response with the prompt, tool activity summary, and token usage into a `ChatTurn` JSON response.
 6. The browser renders the answer as sanitized Markdown and Mermaid where applicable. It updates the collapsible prompt/activity panel and token counters.
 
@@ -170,6 +205,7 @@ Usage is reported when the configured model returns it; otherwise the API marks 
 - Git
 - Java 21
 - An OpenAI API key with access to the model configured for the application
+- A compatible MCP server exposing `search_products` at `http://localhost:8081/mcp` to use product search
 - Internet access for Maven dependency downloads and the browser's CDN-hosted Bootstrap/Markdown assets
 
 ### Clone and configure

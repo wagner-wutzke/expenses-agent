@@ -9,6 +9,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -21,7 +22,12 @@ class ChatConfigurationTest {
   }
 
   @Test void buildsClientWhenPromptIsNonblank() {
-    ChatClient client = configuration("You are helpful").chatClient(new StubChatModel(), new FinancialGuardrailAdvisor());
+    ChatClient client =
+        configuration("You are helpful")
+            .chatClient(
+                new StubChatModel(),
+                new FinancialGuardrailAdvisor(),
+                ToolCallbackProvider.from());
     assertNotNull(client);
   }
 
@@ -41,8 +47,21 @@ class ChatConfigurationTest {
 
   @Test void rejectsMissingAndBlankPrompt() {
     ChatConfiguration missing = new ChatConfiguration();
-    assertThrows(IllegalStateException.class, () -> missing.chatClient(new StubChatModel(), new FinancialGuardrailAdvisor()));
-    assertThrows(IllegalStateException.class, () -> configuration(" \n ").chatClient(new StubChatModel(), new FinancialGuardrailAdvisor()));
+    assertThrows(
+        IllegalStateException.class,
+        () ->
+            missing.chatClient(
+                new StubChatModel(),
+                new FinancialGuardrailAdvisor(),
+                ToolCallbackProvider.from()));
+    assertThrows(
+        IllegalStateException.class,
+        () ->
+            configuration(" \n ")
+                .chatClient(
+                    new StubChatModel(),
+                    new FinancialGuardrailAdvisor(),
+                    ToolCallbackProvider.from()));
   }
 
   @Test void wrapsPromptReadFailure() {
@@ -52,7 +71,11 @@ class ChatConfigurationTest {
       @Override public String getDescription() { return "broken prompt"; }
     });
     IllegalStateException exception = assertThrows(IllegalStateException.class,
-        () -> configuration.chatClient(new StubChatModel(), new FinancialGuardrailAdvisor()));
+        () ->
+            configuration.chatClient(
+                new StubChatModel(),
+                new FinancialGuardrailAdvisor(),
+                ToolCallbackProvider.from()));
     assertTrue(exception.getMessage().contains("broken prompt"));
     assertInstanceOf(IOException.class, exception.getCause());
   }

@@ -16,8 +16,8 @@ class ChatTraceTest {
       ChatTrace.record("getTotalSpendingTool", "EmptyInput[]");
       ChatTrace.record("getExpensesByCategoryTool", "CategoryInput[category=Food]");
       assertEquals(
-          "Action: getTotalSpendingTool\nInput: EmptyInput[]\n\n"
-              + "Action: getExpensesByCategoryTool\nInput: CategoryInput[category=Food]",
+          "Type: function\nAction: getTotalSpendingTool\nInput: EmptyInput[]\n\n"
+              + "Type: function\nAction: getExpensesByCategoryTool\nInput: CategoryInput[category=Food]",
           trace.reasoningSummary());
     }
     ChatTrace.record("after-close", "ignored");

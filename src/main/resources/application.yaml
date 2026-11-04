@@ -8,8 +8,19 @@ spring:
   config:
     import: optional:file:.env
 
-  # spring ai openai
+  # mcp client config
   ai:
+    mcp:
+      client:
+        type: SYNC
+        request-timeout: 30s
+        streamable-http:
+          connections:
+            search_products:
+              url: http://localhost:8081
+              endpoint: /mcp
+
+    # spring ai openai
     openai:
       api-key: ${OPENAI_API_KEY:}
       chat:
@@ -57,4 +68,4 @@ logging:
           chat:
             client:
               advisor:
-                SimpleLoggerAdvisor: DEBUG
+                SimpleLoggerAdvisor: INFO

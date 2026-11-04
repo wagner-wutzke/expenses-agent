@@ -35,11 +35,18 @@
       <artifactId>spring-ai-starter-model-chat-memory</artifactId>
     </dependency>
 
+    <!-- MCP client using Server-Sent Events -->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-mcp-client</artifactId>
+    </dependency>
+
     <!-- Core Spring Boot Starters (Fixed valid names) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webmvc</artifactId>
@@ -51,6 +58,7 @@
       <artifactId>h2</artifactId>
       <scope>runtime</scope>
     </dependency>
+
     <dependency>
       <artifactId>spring-boot-h2console</artifactId>
       <groupId>org.springframework.boot</groupId>
@@ -74,6 +82,7 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa-test</artifactId>
