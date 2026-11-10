@@ -203,27 +203,16 @@ defaultSystem(systemPrompt, StandardCharsets.UTF_8)
 
 defaultAdvisors(
         new SimpleLoggerAdvisor(Ordered.LOWEST_PRECEDENCE),
-        MessageChatMemoryAdvisor.
-
-builder(chatMemory).
-
-build(),
-
-financialGuardrailAdvisor)
-        .
-
-defaultTools(
-        ToolCallbackProvider.from(
+        MessageChatMemoryAdvisor
+           .builder(chatMemory)
+           .build(),
+        financialGuardrailAdvisor)
+        .defaultTools(
+             ToolCallbackProvider.from(
                 Arrays.stream(mcpToolCallbackProvider.getToolCallbacks())
-        .
-
-map(ChatConfiguration::traceToolCallback)
-                .
-
-toList()))
-        .
-
-build();
+        .map(ChatConfiguration::traceToolCallback)
+        .toList()))
+        .build();
 ```
 
 The MCP callbacks are wrapped before registration in the application so their invocations are included in the tool
@@ -240,27 +229,13 @@ finance tool objects for each request. The MCP callback is registered as a `Chat
 
 ```java
 this.chatClient
-        .prompt()
-    .
-
-user(userPrompt)
-    .
-
-advisors(a ->a.
-
-param(ChatMemory.CONVERSATION_ID, conversationId))
-        .
-
-tools(tools)
-    .
-
-toolContext(Map.of("conversationId", conversationId))
-        .
-
-call()
-    .
-
-chatResponse();
+    .prompt()
+    .user(userPrompt)
+    .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
+    .tools(tools)
+    .toolContext(Map.of("conversationId", conversationId))
+    .call()
+    .chatResponse();
 ```
 
 ### Tool calling
@@ -307,20 +282,12 @@ the configured window is not persisted across application restarts. `SimpleLogge
 `FinancialGuardrailAdvisor` implements `CallAdvisor` and checks user text before forwarding the request:
 
 ```java
-if(NEGATIVE_MONEY_PATTERN.matcher(userText).
-
-find()
-    ||userText.
-
-toLowerCase().
-
-contains("negative")){
-        throw new
-
-IllegalArgumentException("Guardrail Blocked Action: ...");
+if(NEGATIVE_MONEY_PATTERN.matcher(userText)
+    .find() || userText.toLowerCase().contains("negative"))
+{
+    throw new IllegalArgumentException("Guardrail Blocked Action: ...");
 }
-        return callAdvisorChain.
-
+return callAdvisorChain.
 nextCall(chatClientRequest);
 ```
 
