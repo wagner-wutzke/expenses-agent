@@ -196,12 +196,8 @@ advisors:
 
 ```java
 return ChatClient.builder(chatModel)
-    .
-
-defaultSystem(systemPrompt, StandardCharsets.UTF_8)
-    .
-
-defaultAdvisors(
+    .defaultSystem(systemPrompt, StandardCharsets.UTF_8)
+    .defaultAdvisors(
         new SimpleLoggerAdvisor(Ordered.LOWEST_PRECEDENCE),
         MessageChatMemoryAdvisor
            .builder(chatMemory)
